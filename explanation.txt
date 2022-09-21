@@ -1,0 +1,9 @@
+Game
+
+Board: A board contains a set of tiles
+
+Tile: Each tile has functions which gets all things on a tile. Tile has a list of all things on a tile
+
+Board Object: each board object has a reference to its position on the board
+
+Position Object: contains information regarding a position somewhere
