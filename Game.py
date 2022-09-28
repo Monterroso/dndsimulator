@@ -1,13 +1,90 @@
+from LogTypes import LogTypes
+from Actions import PreAction
+
+
 class Game:
-  def __init__(self, board):
+  def __init__(self, board, entitiesPositions, logger):
     self.board = board
+    self.turnOrder = []
+    self.entityPositions = {}
+    self.actionStack = []
+    self.turnNumber = 0
+    self.roundCount = 0
+    self.logger = logger
+
+    for entity, pos in entitiesPositions:
+      self.addEntity(entity, pos)
+
+  def isActionStackEmpty(self):
+    return len(self.actionStack) == 0
+
+  def getCurrentEntityTurn(self):
+    return self.turnOrder[self.turnNumber]
+
+  def addEntity(self, entity, pos):
+    self.turnOrder.append(entity)
+    self.turnOrder.sort( key=lambda entity: entity.getInitiative())
+
+    self.entityPositions[entity] = pos
+
+  def getEntityPosition(self, entity):
+    return self.entityPositions[entity]
+
+  def moveEntity(self, entity, destination):
+    if entity in self.entityPositions:
+      self.logger.addLog(LogTypes.ENTITY_MOVED, {"entity": entity, "destination": destination})
+      self.entityPositions[entity] = destination
+    else:
+      raise Exception("An entity has been attempted to move that is not on the board")
+
+  def addAction(self, action):
+    self.logger.addLog(LogTypes.ACTION_ADDED, action)
+    self.actionStack.append(action)
+
+  def performAction(self, action):
+    self.logger.addLog(LogTypes.ACTION_PERFORMED, action)
+    return action.resolveAction(self)
+
+  def resolveActionStack(self):
+    while not self.isActionStackEmpty():
+      action = self.actionStack.pop()
+      nextAction = self.performAction(action)
+
+    if nextAction is not None:
+      self.addAction(nextAction)
+
+  def cycleActionStack(self):
+    for entity in self.turnOrder:
+      action = entity.getAction(self)
+      if action is not None:
+        entity.payCost(action.getBaseCost(self, entity))
+        self.addAction(PreAction(action))
+        if not self.checkGameEnd():
+          self.cycleActionStack()
+        
+
+  def advanceTurn(self):
+    self.turnNumber += 1
+    if self.turnNumber == len(self.turnOrder):
+      self.turnNumber = 0
+      self.roundCount += 1
+
+  def playTurn(self):
+    self.turnOrder[self.turnNumber].startTurn()
+    self.cycleActionStack()
+
+  def checkGameEnd(self):
+    return self.roundCount == 10
       
-  def getSpotsValids(self, pos):
-    valids = []
-    for newx in range(pos.x - 1, pos.y + 2):
-      for newy in range(pos.y - 1, pos.y + 2):
-        if (newx, newy) not in self.board:
-          valids.append([1, (newx, newy)])
-          
-    return valids
+
+  def playGame(self):
+    self.logger.addLog(LogTypes.GAME_START, self.roundCount)
+    
+    self.playTurn()
+
+    self.logger.addLog(LogTypes.GAME_END, self.roundCount)
+
+    
+    
+
   

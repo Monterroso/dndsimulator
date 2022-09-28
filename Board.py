@@ -1,3 +1,5 @@
+from Cost import Cost
+
 class Board:
   def __init__(self, positionTileList):
     self.tiles = {}
@@ -6,20 +8,16 @@ class Board:
       
   def getTileAt(self, position):
     return self.tiles[position]
-  
-  def getNeighborsAtDistance(self, position, distance=1):
-    return [pos for pos in position.getNeighborsAtDistance(distance) if pos in self.tiles]
-  
-  def tileConverter(self, origin, dest):
-    pass
     
-  def getPathCosts(self, positionList):
+  def getNeighborsAt(self, position):
+    return [position + neighbor for neighbor in self.getTileAt(position).getNeighbors()]
+
+  def getPathCost(self, positionList):
+    prevCost = Cost()
+
+    for i in range(1, len(positionList)):
+      prevPos = positionList[i - 1]
+      curPos = positionList[i]
+      prevCost += self.tiles[curPos].getCostFrom(prevPos - curPos)
     
-    if len(positionList) < 2:
-      return 0
-    
-    prevPos = self.getTileAt(position[0])
-    
-    
-    for position in positionList[1:]:
-      self.getTileAt(prevPos).getCostDirectionTo(prevPos.orientation(position))
+    return prevCost

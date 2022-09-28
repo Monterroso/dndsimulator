@@ -2,7 +2,7 @@ from random import random
 import re
 import sys
 
-from dndsimulator.character.Conditions import SURPRISED
+from dndsimulator.Conditions import SURPRISED
 
 def rollForumla(formula, crit):
   return sum([diceRoller(token, crit) for token in formula.split(" ")])
