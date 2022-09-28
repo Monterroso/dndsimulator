@@ -1,5 +1,5 @@
 from LogTypes import LogTypes
-from Actions import PreAction
+from Actions import Action, EndTurnAction, PostAction, StartTurnAction
 
 
 class Game:
@@ -52,16 +52,32 @@ class Game:
 
     if nextAction is not None:
       self.addAction(nextAction)
+      
+  def cycleReactions(self):
+    allPassed = True
+    for entity in self.turnOrder[::-1]:
+        action = entity.getReaction(self)
+        if issubclass(type(action), Action) and action.isValid(self, entity):
+          entity.payCost(action.getBaseCost(self, entity))
+          self.addAction(action)
+          allPassed = False
+          
+    return allPassed
+  
+  def buildReactionStack(self):
+    allPassed = False
+    while not allPassed:
+      allPassed = self.cycleReactions()
+  
+  def resolveReactionStack(self):
+    while len(self.actionStack) >= 1:
+      actionToDo = self.actionStack.pop()
+      result = self.performAction(actionToDo)
+      
+      if type(actionToDo) != PostAction:
+        self.addAction(PostAction(result))
 
-  def cycleActionStack(self):
-    for entity in self.turnOrder:
-      action = entity.getAction(self)
-      if action is not None:
-        entity.payCost(action.getBaseCost(self, entity))
-        self.addAction(PreAction(action))
-        if not self.checkGameEnd():
-          self.cycleActionStack()
-        
+      self.buildReactionStack()
 
   def advanceTurn(self):
     self.turnNumber += 1
@@ -70,17 +86,37 @@ class Game:
       self.roundCount += 1
 
   def playTurn(self):
-    self.turnOrder[self.turnNumber].startTurn()
-    self.cycleActionStack()
+    self.addAction(StartTurnAction())
+    self.buildReactionStack()
+    self.resolveReactionStack()
+    
+    skippedAction = False
+    while not skippedAction:
+      entity = self.getCurrentEntityTurn()
+      action = entity.getAction(self)
+      
+      if issubclass(type(action), Action) and action.isValid(self, entity):
+        self.addAction(action)
+        cost = action.getBaseCost(self, entity)
+        entity.payCost(cost)
+        self.buildReactionStack()
+        self.resolveReactionStack()
+      else:
+        skippedAction = True
+      
+    self.addAction(EndTurnAction())
+    self.buildReactionStack()
+    self.resolveReactionStack()
 
   def checkGameEnd(self):
-    return self.roundCount == 10
+    return self.roundCount == 2
       
 
   def playGame(self):
     self.logger.addLog(LogTypes.GAME_START, self.roundCount)
     
-    self.playTurn()
+    while not self.checkGameEnd(): 
+      self.playTurn()
 
     self.logger.addLog(LogTypes.GAME_END, self.roundCount)
 

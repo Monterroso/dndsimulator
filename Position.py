@@ -14,3 +14,6 @@ class Position:
 
   def __sub__(self, other):
     return Position(self.x - other.x, self.y - other.y)
+  
+  def __repr__(self):
+    return "{0}, {1}".format(self.x, self.y)

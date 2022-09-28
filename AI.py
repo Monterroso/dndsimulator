@@ -1,10 +1,15 @@
 
 
+import math
+from random import random
 from Actions import MoveAction
 
 
 class AI:
   def __init__(self):
+    pass
+  
+  def getReaction(self, game, entity):
     pass
     
   def getAction(self, game, entity):
@@ -16,10 +21,15 @@ class RandomMoverAI(AI):
     board = game.board
     curSpot = game.getEntityPosition(entity)
     
+    moves = []
+    
     for neighbor in board.getNeighborsAt(curSpot):
       offSet = curSpot - neighbor
       cost = board.getTileAt(neighbor).getCostFrom(offSet)
       if entity.canPayCost(cost) and game.isActionStackEmpty():
-        return MoveAction(entity, neighbor, curSpot)
+        moves.append(MoveAction(entity, neighbor, curSpot))
     
-    return None
+    if len(moves) == 0:
+      return None
+    
+    return moves[math.floor(random() * len(moves))]

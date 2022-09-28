@@ -1,4 +1,4 @@
-from Actions import EndTurnAction
+from Actions import Action, EndTurnAction
 
 
 class Entity:
@@ -29,17 +29,18 @@ class Entity:
 
   def payCost(self, cost):
     newCost = self.stats.getModifiedCost(cost)
-    self.currentActions = self.availableActions - newCost
+    self.availableActions -= newCost
+  
+  def getReaction(self, game):
+    reaction = self.ai.getReaction(game, self)
+
+    if issubclass(type(reaction), Action) and reaction.isValid(game, self):
+      return reaction
   
   def getAction(self, game):
     #Called when they take their turn, should return some sort of action, returning none ends the turn
     action = self.ai.getAction(game, self)
 
 
-    if action is not None and action.isValid(game, self):
+    if issubclass(type(action), Action) and action.isValid(game, self):
       return action
-
-    if self == game.getCurrentEntityTurn() and game.isActionStackEmpty():
-      return EndTurnAction()
-    
-    

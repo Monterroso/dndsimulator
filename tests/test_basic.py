@@ -12,5 +12,3 @@ def simpleTest():
     testGame = Game(simpleBoard, [(createMoveEntity(log), EmptyPosition,)], log)
 
     testGame.playGame()
-
-    log.printLog()

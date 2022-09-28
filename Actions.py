@@ -1,39 +1,48 @@
 from Cost import Cost
+from Results import Result
 
+class TopAction:
+  pass
+
+class MainAction(TopAction):
+  pass
+
+class Reaction(TopAction):
+  pass
 
 class Action:
   def __init__(self):
-    pass
+    self.result = None
 
   def getBaseCost(self, game, origin):
     return Cost()
 
   def resolveAction(self, game):
-    return PostAction(self) 
+    self.result = Result(self, {})
+  
+  def getNextAction(self, game, origin):
+    return PostAction(self,wself.result)
 
-  def isValid(self, origin):
+  def isValid(self, game, origin):
     return True
 
-class PreAction(Action):
-  def __init__(self, action):
-    self.action = action
-
-  def resolveAction(self, game):
-    return self.action
-
 class PostAction(Action):
-  def __init__(self, action):
-    self.action = action
-
-  def resolveAction(self):
-    return None
-
+  def __init__(self, result):
+    self.result = result
+  
+class StartTurnAction(Action):
+  def resolveAction(self, game):
+    game.getCurrentEntityTurn().startTurn()
+    return super().resolveAction(game)
+  
+  
 class EndTurnAction(Action):
   def resolveAction(self, game):
     game.advanceTurn()
+    return super().resolveAction(game)
 
   def isValid(self, game, origin):
-    return game.getCurrentEntityTurn() == origin
+    return game.getCurrentEntityTurn() == origin and game.isActionStackEmpty()
   
 class MoveAction(Action):
   def __init__(self, mover, destination, start):
@@ -43,6 +52,7 @@ class MoveAction(Action):
 
   def resolveAction(self, game):
     game.moveEntity(self.mover, self.destination)
+    print(game.entityPositions)
     return super().resolveAction(game)
 
   def getBaseCost(self, game, origin):
@@ -53,8 +63,3 @@ class MoveAction(Action):
       self.mover.canPayCost(self.getBaseCost(game, origin)):
         return True
     return False
-
-class MultiAttackAction(Action):
-  def __init__(self, attacker, attacks):
-    self.attacker = attacker,
-    self.attacks = attacks
