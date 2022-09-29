@@ -8,7 +8,9 @@ class Logger:
             "data": data
         })
 
-    def printLog(self):
+    def printLog(self, filter):
         for log in self.logs:
-            print(log["type"])
-            print(log["data"])
+            if log["type"] in filter:
+                print(log["type"])
+                if log["data"] != None:
+                    print(log["data"])

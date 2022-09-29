@@ -2,7 +2,6 @@ from enum import Enum, auto
 
 class LogTypes(Enum):
     ROUND_START = auto()
-    ROUND_END = auto()
     ACTION_ADDED = auto()
     ACTION_PERFORMED = auto()
     GAME_START = auto()

@@ -11,6 +11,7 @@ class Game:
     self.turnNumber = 0
     self.roundCount = 0
     self.logger = logger
+    self.actionsTakenStack = []
 
     for entity, pos in entitiesPositions:
       self.addEntity(entity, pos)
@@ -18,8 +19,14 @@ class Game:
   def isActionStackEmpty(self):
     return len(self.actionStack) == 0
 
+  def getEntityActionTakenStack(self):
+    return [action for action in self.actionsTakenStack if action.isEntityAction()]
+
   def getCurrentEntityTurn(self):
     return self.turnOrder[self.turnNumber]
+
+  def getTurnsUntilEntityTurn(self, entity):
+    (self.turnNumber - self.turnOrder.index(entity)) % len(self.turnOrder)
 
   def addEntity(self, entity, pos):
     self.turnOrder.append(entity)
@@ -43,6 +50,7 @@ class Game:
 
   def performAction(self, action):
     self.logger.addLog(LogTypes.ACTION_PERFORMED, action)
+    self.actionsTakenStack.append(action)
     return action.resolveAction(self)
 
   def resolveActionStack(self):
@@ -57,7 +65,7 @@ class Game:
     allPassed = True
     for entity in self.turnOrder[::-1]:
         action = entity.getReaction(self)
-        if issubclass(type(action), Action) and action.isValid(self, entity):
+        if Action.isValid(action, self, entity):
           entity.payCost(action.getBaseCost(self, entity))
           self.addAction(action)
           allPassed = False
@@ -79,46 +87,48 @@ class Game:
 
       self.buildReactionStack()
 
+  def handleReactionStack(self):
+    self.buildReactionStack()
+    self.resolveReactionStack()
+
   def advanceTurn(self):
     self.turnNumber += 1
     if self.turnNumber == len(self.turnOrder):
       self.turnNumber = 0
       self.roundCount += 1
+      self.logger.addLog(LogTypes.ROUND_START)
 
   def playTurn(self):
     self.addAction(StartTurnAction())
-    self.buildReactionStack()
-    self.resolveReactionStack()
+    self.handleReactionStack()
     
     skippedAction = False
     while not skippedAction:
       entity = self.getCurrentEntityTurn()
       action = entity.getAction(self)
       
-      if issubclass(type(action), Action) and action.isValid(self, entity):
+      if Action.isValid(action, self, entity):
         self.addAction(action)
-        cost = action.getBaseCost(self, entity)
+        cost = action.getCost(self, entity)
         entity.payCost(cost)
-        self.buildReactionStack()
-        self.resolveReactionStack()
+        self.handleReactionStack()
       else:
         skippedAction = True
       
     self.addAction(EndTurnAction())
-    self.buildReactionStack()
-    self.resolveReactionStack()
+    self.handleReactionStack()
 
   def checkGameEnd(self):
     return self.roundCount == 2
       
 
   def playGame(self):
-    self.logger.addLog(LogTypes.GAME_START, self.roundCount)
+    self.logger.addLog(LogTypes.GAME_START)
     
     while not self.checkGameEnd(): 
       self.playTurn()
 
-    self.logger.addLog(LogTypes.GAME_END, self.roundCount)
+    self.logger.addLog(LogTypes.GAME_END)
 
     
     
