@@ -1,3 +1,3 @@
-from tests.test_basic import simpleTest
+import tests
 
-simpleTest()
+tests.simpleTest()
