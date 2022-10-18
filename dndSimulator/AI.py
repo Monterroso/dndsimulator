@@ -16,6 +16,9 @@ class AI:
     #If the execute stack is empty, means it is your turn to act, otherwise you have to react to something else
     pass
   
+  def serialize(self, serializer):
+    serializer.startObject(None, repr(self))
+  
 class RandomMoverAI(AI):
   def getAction(self, game, entity):
     board = game.board

@@ -1,3 +1,4 @@
+from .Serializer import objectSerializer
 from .Actions import Action, EndTurnAction
 
 
@@ -37,13 +38,30 @@ class Entity:
   
   def getReaction(self, game):
     reaction = self.ai.getReaction(game, self)
+    
+    if Action.isAction(reaction):
+      reaction.setOrigin(self)
 
-    if Action.isValid(reaction, game, self):
+    if Action.isValidAction(reaction, game):
       return reaction
   
   def getAction(self, game):
     #Called when they take their turn, should return some sort of action, returning none ends the turn
     action = self.ai.getAction(game, self)
+    
+    if Action.isAction(action):
+      action.setOrigin(self)
 
-    if Action.isValid(action, game, self):
+    if Action.isValidAction(action, game):
       return action
+    
+  def serialize(self, serializer):    
+    serializer.startObject(None, repr(self))
+    
+    serializer.addProperty("name", self.name)
+    serializer.addProperty("ai", objectSerializer.serialize(self.ai))
+    serializer.addProperty("stats", objectSerializer.serialize(self.stats))
+    serializer.addProperty("conditions", self.conditions)
+    serializer.addProperty("availableActions", objectSerializer.serialize(self.availableActions))
+    serializer.addProperty("logger", objectSerializer.serialize(self.logger))
+    

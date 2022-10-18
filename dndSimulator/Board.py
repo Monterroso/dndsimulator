@@ -1,3 +1,4 @@
+from dndSimulator.Serializer import Serializer, objectSerializer
 from .Cost import Cost
 
 class Board:
@@ -21,3 +22,15 @@ class Board:
       prevCost += self.tiles[curPos].getCostFrom(prevPos - curPos)
     
     return prevCost
+  
+  def serialize(self, serializer):
+    serializer.startObject(None, "Board")
+    
+    tileObj = {}
+    for pos, tile in self.tiles.items():
+      posJSON = objectSerializer.serialize(pos)
+      tileJSON = objectSerializer.serialize(tile)
+      
+      tileObj[repr(pos)] = [posJSON, tileJSON]
+      
+    serializer.addProperty("tiles", tileObj)

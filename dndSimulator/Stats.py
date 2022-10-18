@@ -1,3 +1,4 @@
+from .Serializer import objectSerializer
 from .Conditions import SURPRISED
 from .Cost import Cost
 
@@ -8,7 +9,6 @@ class Stats:
     self.skills = {} if skills == None else skills
     self.actions = actions if actions is not None else {}
     
-
   def initiative(self):
     return self.abilityScores[2]
     
@@ -26,5 +26,13 @@ class Stats:
       return Cost()
     
     return self.actions
+  
+  def serialize(self, serializer):
+    serializer.startObject(None, repr(self))
+    serializer.addProperty("abilityScores", self.abilityScores)
+    serializer.addProperty("saving throws", self.savingThrows)
+    serializer.addProperty("skills", self.skills)
+    serializer.addProperty("actions", objectSerializer.serialize(self.actions))
+    
   
   

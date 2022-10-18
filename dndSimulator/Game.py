@@ -1,3 +1,6 @@
+from dndSimulator.Actions.MainAction import MainAction
+from dndSimulator.Actions.Reaction import Reaction
+from .Serializer import objectSerializer
 from .LogTypes import LogTypes
 from .Actions import Action, EndTurnAction, PostAction, StartTurnAction
 
@@ -19,8 +22,8 @@ class Game:
   def isActionStackEmpty(self):
     return len(self.actionStack) == 0
 
-  def getEntityActionTakenStack(self):
-    return [action for action in self.actionsTakenStack if action.isEntityAction()]
+  def getEntityActionTakenStack(self, filter):
+    return [action for action in self.actionsTakenStack if filter(action)]
 
   def getCurrentEntityTurn(self):
     return self.turnOrder[self.turnNumber]
@@ -39,7 +42,7 @@ class Game:
 
   def moveEntity(self, entity, destination):
     if entity in self.entityPositions:
-      self.logger.addLog(LogTypes.ENTITY_MOVED, {"entity": entity, "destination": destination})
+      self.logger.addLog(LogTypes.ENTITY_MOVED, {"entity": entity, "destination": destination, "origin": self.entityPositions[entity]})
       self.entityPositions[entity] = destination
     else:
       raise Exception("An entity has been attempted to move that is not on the board")
@@ -52,20 +55,12 @@ class Game:
     self.logger.addLog(LogTypes.ACTION_PERFORMED, action)
     self.actionsTakenStack.append(action)
     return action.resolveAction(self)
-
-  def resolveActionStack(self):
-    while not self.isActionStackEmpty():
-      action = self.actionStack.pop()
-      nextAction = self.performAction(action)
-
-    if nextAction is not None:
-      self.addAction(nextAction)
       
   def cycleReactions(self):
     allPassed = True
     for entity in self.turnOrder[::-1]:
         action = entity.getReaction(self)
-        if Action.isValid(action, self, entity):
+        if Reaction.isValidAction(action, self):
           entity.payCost(action.getBaseCost(self, entity))
           self.addAction(action)
           allPassed = False
@@ -80,11 +75,12 @@ class Game:
   def resolveReactionStack(self):
     while len(self.actionStack) >= 1:
       actionToDo = self.actionStack.pop()
-      result = self.performAction(actionToDo)
+      self.performAction(actionToDo)
+      nextAction = actionToDo.getNextAction(self)
       
-      if type(actionToDo) != PostAction:
-        self.addAction(PostAction(result))
-
+      if nextAction != None:
+        self.addAction(nextAction)
+        
       self.buildReactionStack()
 
   def handleReactionStack(self):
@@ -107,9 +103,9 @@ class Game:
       entity = self.getCurrentEntityTurn()
       action = entity.getAction(self)
       
-      if Action.isValid(action, self, entity):
+      if MainAction.isValidAction(action, self):
         self.addAction(action)
-        cost = action.getCost(self, entity)
+        cost = action.getCost(self)
         entity.payCost(cost)
         self.handleReactionStack()
       else:
@@ -119,7 +115,7 @@ class Game:
     self.handleReactionStack()
 
   def checkGameEnd(self):
-    return self.roundCount == 2
+    return self.roundCount == 2 or len(self.actionsTakenStack) > 100
       
 
   def playGame(self):
@@ -129,6 +125,23 @@ class Game:
       self.playTurn()
 
     self.logger.addLog(LogTypes.GAME_END)
+    
+  def serialize(self, serializer):
+    serializer.startObject(None, repr(self))
+    
+    serializer.addProperty("board", objectSerializer.serialize(self.board))
+    serializer.addProperty("turnOrder", [objectSerializer.serialize(entity) for entity in self.turnOrder])
+    
+    entPosObj = {}
+    for pos, entity in self.entityPositions.items():
+      entPosObj[repr(pos)] = [objectSerializer.serialize(pos), objectSerializer.serialize(entity)]
+      
+    serializer.addProperty("entityPositions", entPosObj)
+    serializer.addProperty("actionStack", [objectSerializer.serialize(action) for action in self.actionStack])
+    serializer.addProperty("turnNumber", self.turnNumber)
+    serializer.addProperty("roundCount", self.roundCount)
+    serializer.addProperty("logger", objectSerializer.serialize(self.logger))
+    serializer.addProperty("actionsTakenStack", [objectSerializer.serialize(action) for action in self.actionsTakenStack])
 
     
     

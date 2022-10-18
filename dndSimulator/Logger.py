@@ -1,3 +1,6 @@
+import json
+
+
 class Logger:
     def __init__(self):
         self.logs = []
@@ -8,9 +11,13 @@ class Logger:
             "data": data
         })
 
-    def printLog(self, filter):
+    def printLog(self, *, filter=[], dataFilter=[]):
         for log in self.logs:
-            if log["type"] in filter:
+            if log["type"] in filter and log["type"] not in dataFilter:
                 print(log["type"])
                 if log["data"] != None:
                     print(log["data"])
+                    
+    def serialize(self, serializer):
+        serializer.startObject(None, repr(self))
+        serializer.addProperty("logs", "")#json.dumps(self.logs))

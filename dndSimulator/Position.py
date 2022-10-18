@@ -16,4 +16,10 @@ class Position:
     return Position(self.x - other.x, self.y - other.y)
   
   def __repr__(self):
-    return "{0}, {1}".format(self.x, self.y)
+    return "({0}, {1})".format(self.x, self.y)
+  
+  def serialize(self, serializer):
+    serializer.startObject(None, self.__repr__())
+    serializer.addProperty("x", self.x)
+    serializer.addProperty("y", self.y)
+    

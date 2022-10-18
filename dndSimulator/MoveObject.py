@@ -1,3 +1,5 @@
+#depreciated
+
 class MoveObject:
   def __init__(self, startpos, endpos):
     self.startpos = startpos
