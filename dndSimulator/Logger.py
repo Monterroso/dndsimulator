@@ -1,23 +1,33 @@
-import json
+from dndSimulator.Utils import toDict
 
 
 class Logger:
     def __init__(self):
         self.logs = []
+        self.serializes = []
 
-    def addLog(self, type, data=None):
+    def addLog(self, logType, data=None):
         self.logs.append({
-            "type": type,
+            "logType": logType,
             "data": data
         })
 
-    def printLog(self, *, filter=[], dataFilter=[]):
+    def getLog(self, *, filter=[], dataFilter=[]):
+        logs = []
         for log in self.logs:
-            if log["type"] in filter and log["type"] not in dataFilter:
-                print(log["type"])
+            if log["logType"] in filter and type(log["data"]) not in dataFilter:
+                logs.append([log["logType"]])
                 if log["data"] != None:
-                    print(log["data"])
+                    logs[-1].append((log["data"]))
                     
-    def serialize(self, serializer):
-        serializer.startObject(None, repr(self))
-        serializer.addProperty("logs", "")#json.dumps(self.logs))
+        return logs
+                    
+    def getSerialized(self):
+        return self.serializes
+        
+    def serialize(self, item):
+        memo = []
+        lists = []
+        toDict(item, memo, lists)
+        
+        self.serializes.append(lists)

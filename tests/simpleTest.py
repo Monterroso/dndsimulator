@@ -1,12 +1,13 @@
 import json
-from dndSimulator.Serializer.Serializer import objectSerializer
+
+from dndSimulator.Utils import toDict
 from .context import dndSimulator
 
 from dndSimulator.Game import Game
 from dndSimulator.BoardObjects import simpleBoard
 from dndSimulator.Logger import Logger
-from dndSimulator.EntityObjects import createMoveEntity
-from dndSimulator.PositionObjects import EmptyPosition
+from dndSimulator.EntityObjects import entityFactory
+from dndSimulator.PositionObjects import OriginPosition
 from dndSimulator.LogTypes import LogTypes
 from dndSimulator.Actions import PostAction
 
@@ -14,24 +15,37 @@ from dndSimulator.Actions import PostAction
 def simpleTest():
     log = Logger()
 
-    testGame = Game(simpleBoard, [(createMoveEntity(log), EmptyPosition,)], log)
+    testGame = Game(simpleBoard, [(entityFactory.createMoveEntity(), OriginPosition,), (entityFactory.createGhostMoveEntity(), OriginPosition,)], log)
 
     testGame.playGame()
     
     def filter(action):
-        return action.isEntityAction() and not PostAction.isValidAction(action, testGame)
-    
-    serialed = objectSerializer.serialize(testGame)
-    
-    out_file = open("./text.json", "w")
+        return action.isEntityAction() and not issubclass(PostAction, type(action))
 
-    obj = json.loads(serialed)
+    out_file = open("./text.json", "w")
     
-    json.dump(obj, out_file)
+    json.dump(log.getSerialized(), out_file)
     
-    out_file.close()
+    # out_file.close()
     
     # print(testGame.getEntityActionTakenStack(filter))
 
-    # log.printLog(filter=[LogTypes.ROUND_START, LogTypes.ACTION_PERFORMED, LogTypes.GAME_START, LogTypes.GAME_END, LogTypes.ENTITY_MOVED],
-    #              dataFilter=[PostAction])
+    logs = log.getLog(filter=[LogTypes.ENTITY_MOVED],
+                 dataFilter=[PostAction])
+    
+    positionMap = {}
+    
+    for log in logs:
+        _, data = log
+        entity = data["entity"]
+        destination = data["destination"]
+        origin = data["origin"]
+        
+        if entity not in positionMap:
+            positionMap[entity] = [origin]
+            
+        positionMap[entity].append(destination)
+        
+    print(positionMap)
+    
+    

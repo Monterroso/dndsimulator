@@ -1,4 +1,4 @@
-from ..Serializer import objectSerializer
+from dndSimulator.Utils import toDict
 from .Action import Action
 
 
@@ -9,8 +9,10 @@ class PostAction(Action):
     super().__init__()
   
   def isValid(self, game):
-    return True
+    return False
   
-  def serialize(self, serializer):
-    serializer.startObject(None, repr(self))
-    serializer.addProperty("action", objectSerializer.serialize(self.action))
+  def toDict(self, memo, lists):
+    return {
+      **super().toDict(memo, lists),
+      "action": toDict(self.action, memo, lists),
+    }

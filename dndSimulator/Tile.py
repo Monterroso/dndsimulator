@@ -1,4 +1,4 @@
-from .Serializer import objectSerializer
+from dndSimulator.Utils import toDict
 from .Cost import Cost
 
 
@@ -22,15 +22,10 @@ class Tile:
     
     return Cost(isInfinite=True)
   
-  def serialize(self, serializer):
-    serializer.startObject(None, self.__repr__())
-    serializer.addProperty("height", self.height)
-    neighborObj = {}
-    for pos, cost in self.neighborMoveData.items():
-      posJSON = objectSerializer.serialize(pos)
-      costJSON = objectSerializer.serialize(cost)
-      
-      neighborObj[repr(pos)] = [posJSON, costJSON]
-      
-    serializer.addProperty("neighborMoveData", neighborObj)
+  def toDict(self, memo, lists):
+    return {
+      "type": type(self).__name__,
+      "height": toDict(self.height, memo, lists),
+      "neighborMoveData": toDict(self.neighborMoveData, memo, lists),
+    }
   

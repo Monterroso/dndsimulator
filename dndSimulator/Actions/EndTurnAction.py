@@ -1,5 +1,5 @@
 from .MainAction import MainAction
 
 class EndTurnAction(MainAction):
-  def resolveAction(self, game):
+  def perform(self, game):
     game.advanceTurn()

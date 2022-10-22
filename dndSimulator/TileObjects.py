@@ -3,7 +3,7 @@ from .CostObjects import ZeroCost, OneMoveCost, OneAndHalfMoveCost
 from .Tile import Tile
 
 
-from .PositionObjects import TopLeftPosition, TopPosition, TopRightPosition, LeftPosition, EmptyPosition, RightPosition, BottomLeftPosition, BottomPosition, BottomRightPosition 
+from .PositionObjects import TopLeftPosition, TopPosition, TopRightPosition, LeftPosition, OriginPosition, RightPosition, BottomLeftPosition, BottomPosition, BottomRightPosition 
 
 
 TLP = {TopLeftPosition: OneAndHalfMoveCost}
@@ -11,7 +11,7 @@ TP = {TopPosition: OneMoveCost}
 TRP = {TopRightPosition: OneAndHalfMoveCost}
 
 LP = {LeftPosition: OneMoveCost}
-EP = {EmptyPosition: ZeroCost}
+EP = {OriginPosition: ZeroCost}
 RP = {RightPosition: OneMoveCost}
 
 BLP = {BottomLeftPosition: OneAndHalfMoveCost}

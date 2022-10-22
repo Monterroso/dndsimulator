@@ -1,8 +1,8 @@
 from dndSimulator.Actions.MainAction import MainAction
 from dndSimulator.Actions.Reaction import Reaction
-from .Serializer import objectSerializer
+from dndSimulator.Utils import toDict
 from .LogTypes import LogTypes
-from .Actions import Action, EndTurnAction, PostAction, StartTurnAction
+from .Actions import EndTurnAction, StartTurnAction
 
 
 class Game:
@@ -21,6 +21,10 @@ class Game:
 
   def isActionStackEmpty(self):
     return len(self.actionStack) == 0
+  
+  def getNextAction(self):
+    if not self.isActionStackEmpty():
+      return self.actionStack[0]
 
   def getEntityActionTakenStack(self, filter):
     return [action for action in self.actionsTakenStack if filter(action)]
@@ -48,44 +52,61 @@ class Game:
       raise Exception("An entity has been attempted to move that is not on the board")
 
   def addAction(self, action):
+    """Adds action to stack, handles cost if origin of action is entity
+
+    Args:
+        action (Action): Action to be added to the stack
+    """
     self.logger.addLog(LogTypes.ACTION_ADDED, action)
+    if action.origin != None:
+      cost = action.getCost(self)
+      action.origin.payCost(cost)
     self.actionStack.append(action)
 
   def performAction(self, action):
     self.logger.addLog(LogTypes.ACTION_PERFORMED, action)
     self.actionsTakenStack.append(action)
+    self.logger.serialize(self)
     return action.resolveAction(self)
       
   def cycleReactions(self):
+    """Cycles through all entities, getting reactions
+
+    Returns:
+        bool: Whether or not a reaction was placed onto the stack
+    """
     allPassed = True
     for entity in self.turnOrder[::-1]:
         action = entity.getReaction(self)
         if Reaction.isValidAction(action, self):
-          entity.payCost(action.getBaseCost(self, entity))
           self.addAction(action)
           allPassed = False
           
     return allPassed
   
   def buildReactionStack(self):
+    """Builds up the stack by cycling through reactions, stopping once all entities pass
+    """
     allPassed = False
     while not allPassed:
       allPassed = self.cycleReactions()
   
   def resolveReactionStack(self):
-    while len(self.actionStack) >= 1:
+    """Resolves the action stack by building up and resolving the stack, until stack is empty.
+    
+    Returns if called while stack is empty
+    
+    One round is performed for reactions if the stack gets emptied, if still empty then exists
+    """
+    while not self.isActionStackEmpty():
       actionToDo = self.actionStack.pop()
       self.performAction(actionToDo)
       nextAction = actionToDo.getNextAction(self)
       
       if nextAction != None:
         self.addAction(nextAction)
-        
+      
       self.buildReactionStack()
-
-  def handleReactionStack(self):
-    self.buildReactionStack()
-    self.resolveReactionStack()
 
   def advanceTurn(self):
     self.turnNumber += 1
@@ -96,7 +117,7 @@ class Game:
 
   def playTurn(self):
     self.addAction(StartTurnAction())
-    self.handleReactionStack()
+    self.resolveReactionStack()
     
     skippedAction = False
     while not skippedAction:
@@ -105,14 +126,12 @@ class Game:
       
       if MainAction.isValidAction(action, self):
         self.addAction(action)
-        cost = action.getCost(self)
-        entity.payCost(cost)
-        self.handleReactionStack()
+        self.resolveReactionStack()
       else:
         skippedAction = True
       
     self.addAction(EndTurnAction())
-    self.handleReactionStack()
+    self.resolveReactionStack()
 
   def checkGameEnd(self):
     return self.roundCount == 2 or len(self.actionsTakenStack) > 100
@@ -126,22 +145,17 @@ class Game:
 
     self.logger.addLog(LogTypes.GAME_END)
     
-  def serialize(self, serializer):
-    serializer.startObject(None, repr(self))
-    
-    serializer.addProperty("board", objectSerializer.serialize(self.board))
-    serializer.addProperty("turnOrder", [objectSerializer.serialize(entity) for entity in self.turnOrder])
-    
-    entPosObj = {}
-    for pos, entity in self.entityPositions.items():
-      entPosObj[repr(pos)] = [objectSerializer.serialize(pos), objectSerializer.serialize(entity)]
-      
-    serializer.addProperty("entityPositions", entPosObj)
-    serializer.addProperty("actionStack", [objectSerializer.serialize(action) for action in self.actionStack])
-    serializer.addProperty("turnNumber", self.turnNumber)
-    serializer.addProperty("roundCount", self.roundCount)
-    serializer.addProperty("logger", objectSerializer.serialize(self.logger))
-    serializer.addProperty("actionsTakenStack", [objectSerializer.serialize(action) for action in self.actionsTakenStack])
+  def toDict(self, memo, lists):
+    return {
+      "type": type(self).__name__,
+      "board": toDict(self.board, memo, lists),
+      "turnOrder": toDict(self.turnOrder, memo, lists),
+      "entityPositions": toDict(self.entityPositions, memo, lists),
+      "actionStack": toDict(self.actionStack, memo, lists),
+      "turnNumber": toDict(self.turnNumber, memo, lists),
+      "roundCount": toDict(self.roundCount, memo, lists),
+      "actionsTakenStack": toDict(self.actionsTakenStack, memo, lists),
+    }
 
     
     

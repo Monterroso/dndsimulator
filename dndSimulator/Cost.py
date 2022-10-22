@@ -2,7 +2,7 @@ from enum import Enum, auto
 import copy
 import json
 
-from .Serializer import objectSerializer
+from dndSimulator.Utils import toDict
 
 
 class Cost:
@@ -70,16 +70,8 @@ class Cost:
     def subCost(self, cost, feature, category):
         self.addCost(-cost, feature, category)
         
-    def serialize(self, serializer):
-        serializer.startObject(None, repr(self))
-        
-        categoryObj = {}
-        for category, featureCost in self.costs.items():
-            featureObj = {}
-            
-            for feature, cost in featureCost.items():
-                featureObj[feature.value] = cost
-                
-            categoryObj[category.value] = json.dumps(featureObj)
-            
-        serializer.addProperty("costs", json.dumps(categoryObj))
+    def toDict(self, memo, lists):
+        return {
+            "type": type(self).__name__,
+            "costs": toDict(self.costs, memo, lists)
+        }

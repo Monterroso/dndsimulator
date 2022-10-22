@@ -1,21 +1,31 @@
-from .Serializer import objectSerializer
+from dndSimulator.Utils import toDict
 from .Actions import Action, EndTurnAction
 
 
 class Entity:
-  def __init__(self, name, conditions, stats, ai, logger):
+  def __init__(self, name, conditions, stats, ai, team):
     self.name = name
     self.ai = ai
+    self.currentStats = stats.getBase()
     self.stats = stats
     self.conditions = [stats.filterConditions(conditions)]
     self.availableActions = stats.getTurnStartActions(self)
-    self.logger = logger
+    self.team = team
 
   def __repr__(self):
-    return "Entity: {0}".format(self.name)
+    return self.name
+  
+  def getTeam(self):
+    return self.team
 
   def getInitiative(self):
     return self.stats.initiative()
+  
+  def getModifiedStats(self):
+    return 
+  
+  def getStat(self, stat):
+    return self.stats.getStat(stat)
 
   def startTurn(self):
     self.availableActions = self.stats.getTurnStartActions(self)
@@ -36,6 +46,12 @@ class Entity:
     newCost = self.stats.getModifiedCost(cost)
     self.availableActions -= newCost
   
+  def attemptDeny(self, denier, action, game):
+    return self.stats.attemptDeny(self, denier, action, game)
+  
+  def attemptPrevent(self, denier, action, game):
+    return self.stats.attemptPrevent(self, denier, action, game)
+  
   def getReaction(self, game):
     reaction = self.ai.getReaction(game, self)
     
@@ -55,13 +71,12 @@ class Entity:
     if Action.isValidAction(action, game):
       return action
     
-  def serialize(self, serializer):    
-    serializer.startObject(None, repr(self))
-    
-    serializer.addProperty("name", self.name)
-    serializer.addProperty("ai", objectSerializer.serialize(self.ai))
-    serializer.addProperty("stats", objectSerializer.serialize(self.stats))
-    serializer.addProperty("conditions", self.conditions)
-    serializer.addProperty("availableActions", objectSerializer.serialize(self.availableActions))
-    serializer.addProperty("logger", objectSerializer.serialize(self.logger))
-    
+  def toDict(self, memo, lists):
+    return {
+      "type": type(self).__name__,
+      "name": toDict(self.name, memo, lists),
+      "ai": toDict(self.ai, memo, lists),
+      "stats": toDict(self.stats, memo, lists),
+      "conditions": toDict(self.conditions, memo, lists),
+      "availableActions": toDict(self.availableActions, memo, lists)
+    }

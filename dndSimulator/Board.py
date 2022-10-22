@@ -1,4 +1,4 @@
-from dndSimulator.Serializer import Serializer, objectSerializer
+from dndSimulator.Utils import toDict
 from .Cost import Cost
 
 class Board:
@@ -23,14 +23,8 @@ class Board:
     
     return prevCost
   
-  def serialize(self, serializer):
-    serializer.startObject(None, "Board")
-    
-    tileObj = {}
-    for pos, tile in self.tiles.items():
-      posJSON = objectSerializer.serialize(pos)
-      tileJSON = objectSerializer.serialize(tile)
-      
-      tileObj[repr(pos)] = [posJSON, tileJSON]
-      
-    serializer.addProperty("tiles", tileObj)
+  def toDict(self, memo, lists):
+    return {
+      "type": type(self).__name__,
+      "tiles": toDict(self.tiles, memo, lists)
+    }
