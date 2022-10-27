@@ -1,6 +1,4 @@
 from dndSimulator.Actions import MoveAction, Reaction
-from dndSimulator.Utils import toDict
-
 
 class PreventOverlapMove(Reaction):
   def __init__(self, toDeny, child=None, parent=None):
@@ -19,8 +17,8 @@ class PreventOverlapMove(Reaction):
   def perform(self, game):
     self.toDeny.attemptDeny(self, game)
     
-  def toDict(self, memo, lists):
+  def toDict(self, serializer):
     return {
-      **super().toDict(memo, lists),
-      "toDeny": toDict(self.toDeny, memo, lists),
+      **super().toDict(serializer),
+      "toDeny": serializer(self.toDeny),
     }

@@ -1,6 +1,4 @@
-from dndSimulator.Utils import toDict
 from .Action import Action
-
 
 class PostAction(Action):
   def __init__(self, action):
@@ -11,8 +9,8 @@ class PostAction(Action):
   def isValid(self, game):
     return False
   
-  def toDict(self, memo, lists):
+  def toDict(self, serializer):
     return {
-      **super().toDict(memo, lists),
-      "action": toDict(self.action, memo, lists),
+      **super().toDict(serializer),
+      "action": serializer(self.action),
     }

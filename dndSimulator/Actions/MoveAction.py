@@ -1,4 +1,3 @@
-from dndSimulator.Utils import toDict
 from .MainAction import MainAction
 
 #Actions taken by entity
@@ -41,10 +40,10 @@ class MoveAction(MainAction):
   def isEntityAction(self):
     return True
   
-  def toDict(self, memo, lists):
+  def toDict(self, serializer):
     return {
-      **super().toDict(memo, lists),
-      "mover": toDict(self.mover, memo, lists),
-      "destination": toDict(self.destination, memo, lists),
-      "start": toDict(self.start, memo, lists),
+      **super().toDict(serializer),
+      "mover": serializer(self.mover),
+      "destination": serializer(self.destination),
+      "start": serializer(self.start),
     }

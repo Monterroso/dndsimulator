@@ -38,3 +38,5 @@ def createBoard(width, height):
     return positionTileList
 
 simpleBoard = Board(createBoard(5, 5))
+
+twoTileBoard = Board(createBoard(1, 2))

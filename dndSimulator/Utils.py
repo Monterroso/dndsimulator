@@ -1,32 +1,39 @@
-def toDict(toConvert, memo, lists):
-  if toConvert in memo:
-    return {"index": memo.index(toConvert)}
+class Serializer:
+  def __init__(self):
+    self.memo = []
+    self.lists = []
     
-  item = {
-    "type": type(toConvert).__name__,
-  }
-  
-  curIndex = len(memo)
-  
-  memo.append(toConvert)
-  lists.append(item)
-  
-  
-  if hasattr(toConvert, "toDict"):
-    for key, value in toConvert.toDict(memo, lists).items():
-      item[key] = value
-  elif isinstance(toConvert, dict):
-    item["pairs"] = []
+  def __call__(self, obj):
+    if obj not in self.memo:
+      item = {
+        "type": type(obj).__name__,
+      }
+      
+      self.memo.append(obj)
+      self.lists.append(item)
+      
+      if hasattr(obj, "toDict"):
+        for key, value in obj.toDict(self).items():
+          item[key] = value
+          
+      elif isinstance(obj, dict):
+        item["pairs"] = []
+        for key, value in obj.items():
+          item["pairs"].append((self(key), self(value)))
+      
+      else:
+        #Check if iteratable
+        try:
+          iterator = iter(obj)
+          item["items"] = []
+          for value in iterator:
+            item["items"].append(self(value))
+            
+        #Otherwise
+        except TypeError:
+           item["value"] = repr(obj)
     
-    for key, value in toConvert.items():
-      item["pairs"].append((toDict(key, memo, lists), toDict(value, memo, lists)))
-  elif isinstance(toConvert, list):
-    item["items"] = []
-    
-    for value in toConvert:
-      item["items"].append(toDict(value, memo, lists))
-  else:
-    item["value"] = repr(toConvert)
+    return {"index": self.memo.index(obj)}
   
-  return {"index": curIndex}
-    
+  def getResult(self):
+    return self.lists

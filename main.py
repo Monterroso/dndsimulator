@@ -1,3 +1,3 @@
 import tests
 
-tests.simpleTest()
+tests.movementTest()

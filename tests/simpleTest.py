@@ -1,6 +1,5 @@
 import json
 
-from dndSimulator.Utils import toDict
 from .context import dndSimulator
 
 from dndSimulator.Game import Game
@@ -13,39 +12,34 @@ from dndSimulator.Actions import PostAction
 
 
 def simpleTest():
-    log = Logger()
+  log = Logger()
+  testGame = Game(simpleBoard, [(entityFactory.createMoveEntity(), OriginPosition,), (entityFactory.createGhostMoveEntity(), OriginPosition,)], log)
 
-    testGame = Game(simpleBoard, [(entityFactory.createMoveEntity(), OriginPosition,), (entityFactory.createGhostMoveEntity(), OriginPosition,)], log)
+  testGame.playGame()
 
-    testGame.playGame()
-    
-    def filter(action):
-        return action.isEntityAction() and not issubclass(PostAction, type(action))
+  out_file = open("./display/public/data/text.json", "w")
+  
+  json.dump(log.getSerialized(), out_file)
+  
+  # out_file.close()
+  
+  # print(testGame.getEntityActionTakenStack(filter))
 
-    out_file = open("./text.json", "w")
+  logs = log.getLog(filter=[LogTypes.ENTITY_MOVED], dataFilter=[PostAction])
+  
+  positionMap = {}
+  
+  for log in logs:
+    _, data = log
+    entity = data["entity"]
+    destination = data["destination"]
+    origin = data["origin"]
     
-    json.dump(log.getSerialized(), out_file)
-    
-    # out_file.close()
-    
-    # print(testGame.getEntityActionTakenStack(filter))
-
-    logs = log.getLog(filter=[LogTypes.ENTITY_MOVED],
-                 dataFilter=[PostAction])
-    
-    positionMap = {}
-    
-    for log in logs:
-        _, data = log
-        entity = data["entity"]
-        destination = data["destination"]
-        origin = data["origin"]
+    if entity not in positionMap:
+      positionMap[entity] = [origin]
         
-        if entity not in positionMap:
-            positionMap[entity] = [origin]
-            
-        positionMap[entity].append(destination)
-        
-    print(positionMap)
+    positionMap[entity].append(destination)
+      
+  print(positionMap)
     
     

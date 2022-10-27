@@ -1,77 +1,72 @@
 from enum import Enum, auto
 import copy
-import json
-
-from dndSimulator.Utils import toDict
-
 
 class Cost:
-    class Categories(Enum):
-        STANDARD = auto()
-        MOVE = auto()
-        BONUS = auto()
-        REACTION = auto()
+  class Categories(Enum):
+    STANDARD = auto()
+    MOVE = auto()
+    BONUS = auto()
+    REACTION = auto()
 
-    class Features(Enum):
-        BASE = auto()
+  class Features(Enum):
+    BASE = auto()
 
-    def __init__(self, isInfinite=False):
-        self.costs = {}
+  def __init__(self, isInfinite=False):
+    self.costs = {}
 
-        self.isInfinite = isInfinite
+    self.isInfinite = isInfinite
 
-    def __add__(self, other):
-        if self.isInfinite or other.isInfinite:
-            return Cost(isInfinite=True)
+  def __add__(self, other):
+    if self.isInfinite or other.isInfinite:
+      return Cost(isInfinite=True)
 
-        costObject = copy.deepcopy(self)
-        
-        for category, featureCost in other.costs.items():
-            for feature, cost in featureCost.items():
-                costObject.addCost(cost, feature, category)
-        
-        return costObject
+    costObject = copy.deepcopy(self)
+    
+    for category, featureCost in other.costs.items():
+      for feature, cost in featureCost.items():
+        costObject.addCost(cost, feature, category)
+    
+    return costObject
 
-    def __sub__(self, other):
-        if self.isInfinite or other.isInfinite:
-            return Cost(isInfinite=True)
+  def __sub__(self, other):
+    if self.isInfinite or other.isInfinite:
+      return Cost(isInfinite=True)
 
-        costObject = copy.deepcopy(self)
-        
-        for category, featureCost in other.costs.items():
-            for feature, cost in featureCost.items():
-                costObject.subCost(cost, feature, category)
-        
-        return costObject
+    costObject = copy.deepcopy(self)
+    
+    for category, featureCost in other.costs.items():
+      for feature, cost in featureCost.items():
+        costObject.subCost(cost, feature, category)
+    
+    return costObject
 
-    def setInfinite(self):
-        self.isInfinite = True
+  def setInfinite(self):
+    self.isInfinite = True
 
-    def isValid(self):
-        if self.isInfinite:
-            return False
+  def isValid(self):
+    if self.isInfinite:
+      return False
 
-        for _, featureCost in self.costs.items():
-            for _, cost in featureCost.items():
-                if cost < 0:
-                    return False
+    for _, featureCost in self.costs.items():
+      for _, cost in featureCost.items():
+        if cost < 0:
+          return False
 
-        return True
+    return True
       
-    def addCost(self, cost, feature, category):
-        if category not in self.costs:
-            self.costs[category] = {}
+  def addCost(self, cost, feature, category):
+    if category not in self.costs:
+      self.costs[category] = {}
 
-        if feature not in self.costs[category]:
-            self.costs[category][feature] = 0
-            
-        self.costs[category][feature] += cost
-
-    def subCost(self, cost, feature, category):
-        self.addCost(-cost, feature, category)
+    if feature not in self.costs[category]:
+      self.costs[category][feature] = 0
         
-    def toDict(self, memo, lists):
-        return {
-            "type": type(self).__name__,
-            "costs": toDict(self.costs, memo, lists)
-        }
+    self.costs[category][feature] += cost
+
+  def subCost(self, cost, feature, category):
+    self.addCost(-cost, feature, category)
+      
+  def toDict(self, serializer):
+    return {
+      "costs": serializer(self.costs)
+    }

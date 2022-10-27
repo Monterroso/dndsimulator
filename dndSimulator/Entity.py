@@ -1,4 +1,3 @@
-from dndSimulator.Utils import toDict
 from .Actions import Action, EndTurnAction
 
 
@@ -54,29 +53,26 @@ class Entity:
   
   def getReaction(self, game):
     reaction = self.ai.getReaction(game, self)
-    
-    if Action.isAction(reaction):
-      reaction.setOrigin(self)
 
     if Action.isValidAction(reaction, game):
+      reaction.setOrigin(self)
       return reaction
   
   def getAction(self, game):
     #Called when they take their turn, should return some sort of action, returning none ends the turn
     action = self.ai.getAction(game, self)
-    
-    if Action.isAction(action):
-      action.setOrigin(self)
 
     if Action.isValidAction(action, game):
+      action.setOrigin(self)
       return action
     
-  def toDict(self, memo, lists):
+  def toDict(self, serializer):
     return {
-      "type": type(self).__name__,
-      "name": toDict(self.name, memo, lists),
-      "ai": toDict(self.ai, memo, lists),
-      "stats": toDict(self.stats, memo, lists),
-      "conditions": toDict(self.conditions, memo, lists),
-      "availableActions": toDict(self.availableActions, memo, lists)
+      "name": serializer(self.name),
+      "ai": serializer(self.ai),
+      "stats": serializer(self.stats),
+      "currentStats": serializer(self.currentStats),
+      "conditions": serializer(self.conditions),
+      "availableActions": serializer(self.availableActions),
+      "team": serializer(self.team)
     }

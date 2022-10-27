@@ -3,7 +3,7 @@ from .Cost import Cost
 from .StatItems import Traits
 
 actions = Cost()
-actions.addCost(6.5, Cost.Features.BASE, Cost.Categories.MOVE)
+actions.addCost(1.5, Cost.Features.BASE, Cost.Categories.MOVE)
 
 moveStats = Stats(actions=actions)
 

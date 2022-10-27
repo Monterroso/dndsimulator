@@ -1,6 +1,4 @@
-from dndSimulator.Utils import toDict
 from .Cost import Cost
-
 
 class Tile:
   def __init__(self, neighborMoveData, height=0):
@@ -22,10 +20,9 @@ class Tile:
     
     return Cost(isInfinite=True)
   
-  def toDict(self, memo, lists):
+  def toDict(self, serializer):
     return {
-      "type": type(self).__name__,
-      "height": toDict(self.height, memo, lists),
-      "neighborMoveData": toDict(self.neighborMoveData, memo, lists),
+      "height": serializer(self.height),
+      "neighborMoveData": serializer(self.neighborMoveData),
     }
   

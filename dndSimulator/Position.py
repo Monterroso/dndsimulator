@@ -1,4 +1,3 @@
-from dndSimulator.Utils import toDict
 
 
 class Position:
@@ -21,10 +20,9 @@ class Position:
   def __repr__(self):
     return "({0}, {1})".format(self.x, self.y)
   
-  def toDict(self, memo, lists):
+  def toDict(self, serializer):
     return {
-            "type": type(self).__name__,
-            "x": toDict(self.x, memo, lists),
-            "y": toDict(self.y, memo, lists),
-        }
+      "x": serializer(self.x),
+      "y": serializer(self.y),
+    }
     

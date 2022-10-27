@@ -1,12 +1,10 @@
 from dndSimulator.Cost import Cost
-from dndSimulator.Results import Result
-from dndSimulator.Utils import toDict
 import uuid
 
 #Base for all actions
 class Action:
-  def __init__(self, parent=None, child=None):
-    self.origin = None
+  def __init__(self, origin=None, parent=None, child=None):
+    self.origin = origin
     self.parent = parent
     self.child = child
     self.deniedBy = []
@@ -86,17 +84,16 @@ class Action:
   def isEntityAction(self):
     return self.origin == None
   
-  def toDict(self, memo, lists):
+  def toDict(self, serializer):
     return {
-      "type": type(self).__name__,
-      "origin": toDict(self.origin, memo, lists),
-      "parent": toDict(self.parent, memo, lists),
-      "child": toDict(self.child, memo, lists),
-      "id": toDict(self.id, memo, lists),
-      "deniedBy": toDict(self.deniedBy, memo, lists),
-      "denied": toDict(self.denied, memo, lists),
-      "preventedBy": toDict(self.preventedBy, memo, lists),
-      "prevented": toDict(self.prevented, memo, lists),
+      "origin": serializer(self.origin),
+      "parent": serializer(self.parent),
+      "child": serializer(self.child),
+      "id": serializer(self.id),
+      "deniedBy": serializer(self.deniedBy),
+      "denied": serializer(self.denied),
+      "preventedBy": serializer(self.preventedBy),
+      "prevented": serializer(self.prevented),
     }
   
   @classmethod

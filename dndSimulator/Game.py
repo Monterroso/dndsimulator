@@ -1,18 +1,18 @@
 from dndSimulator.Actions.MainAction import MainAction
 from dndSimulator.Actions.Reaction import Reaction
-from dndSimulator.Utils import toDict
 from .LogTypes import LogTypes
 from .Actions import EndTurnAction, StartTurnAction
 
 
 class Game:
-  def __init__(self, board, entitiesPositions, logger):
+  def __init__(self, board, entitiesPositions, endCons, logger):
     self.board = board
     self.turnOrder = []
     self.entityPositions = {}
     self.actionStack = []
     self.turnNumber = 0
     self.roundCount = 0
+    self.endCons = endCons
     self.logger = logger
     self.actionsTakenStack = []
 
@@ -21,6 +21,9 @@ class Game:
 
   def isActionStackEmpty(self):
     return len(self.actionStack) == 0
+  
+  def getRoundCount(self):
+    return self.roundCount
   
   def getNextAction(self):
     if not self.isActionStackEmpty():
@@ -76,11 +79,11 @@ class Game:
         bool: Whether or not a reaction was placed onto the stack
     """
     allPassed = True
-    for entity in self.turnOrder[::-1]:
-        action = entity.getReaction(self)
-        if Reaction.isValidAction(action, self):
-          self.addAction(action)
-          allPassed = False
+    for entity in self.turnOrder[:-1]:
+      action = entity.getReaction(self)
+      if Reaction.isValidAction(action, self):
+        self.addAction(action)
+        allPassed = False
           
     return allPassed
   
@@ -116,7 +119,7 @@ class Game:
       self.logger.addLog(LogTypes.ROUND_START)
 
   def playTurn(self):
-    self.addAction(StartTurnAction())
+    self.addAction(StartTurnAction(self))
     self.resolveReactionStack()
     
     skippedAction = False
@@ -130,13 +133,16 @@ class Game:
       else:
         skippedAction = True
       
-    self.addAction(EndTurnAction())
+    self.addAction(EndTurnAction(self))
     self.resolveReactionStack()
 
   def checkGameEnd(self):
-    return self.roundCount == 2 or len(self.actionsTakenStack) > 100
+    for endCon in self.endCons:
+      if endCon(self) == True:
+        return True
       
-
+    return False
+      
   def playGame(self):
     self.logger.addLog(LogTypes.GAME_START)
     
@@ -145,16 +151,15 @@ class Game:
 
     self.logger.addLog(LogTypes.GAME_END)
     
-  def toDict(self, memo, lists):
+  def toDict(self, serializer):
     return {
-      "type": type(self).__name__,
-      "board": toDict(self.board, memo, lists),
-      "turnOrder": toDict(self.turnOrder, memo, lists),
-      "entityPositions": toDict(self.entityPositions, memo, lists),
-      "actionStack": toDict(self.actionStack, memo, lists),
-      "turnNumber": toDict(self.turnNumber, memo, lists),
-      "roundCount": toDict(self.roundCount, memo, lists),
-      "actionsTakenStack": toDict(self.actionsTakenStack, memo, lists),
+      "board": serializer(self.board),
+      "turnOrder": serializer(self.turnOrder),
+      "entityPositions": serializer(self.entityPositions),
+      "actionStack": serializer(self.actionStack),
+      "turnNumber": serializer(self.turnNumber),
+      "roundCount": serializer(self.roundCount),
+      "actionsTakenStack": serializer(self.actionsTakenStack),
     }
 
     

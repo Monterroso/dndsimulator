@@ -1,20 +1,26 @@
 from dndSimulator.Actions.MoveAction import MoveAction
-from dndSimulator.Utils import toDict
 from copy import deepcopy
 from .Conditions import SURPRISED
 from .Cost import Cost
 from .StatItems import Traits
 
 class Stats:
-  def __init__(self, abilityScores=None, savingThrows=None, skills=None, actions=None, traits=None):
+  def __init__(self, abilityScores=None, savingThrows=None, ac=10, skills=None, actions=None, traits=None):
     self.abilityScores = [10 for _ in range(6)] if abilityScores == None else abilityScores
     self.savingThrows = {} if savingThrows == None else savingThrows
+    self.ac = ac
     self.skills = {} if skills == None else skills
     self.actions = actions if actions is not None else {}
     self.traits =  traits if traits is not None else []
   
   def getBase(self):
-    return {"abilityScores": self.abilityScores,}  
+    return {
+      "abilityScores": self.abilityScores,
+      "savingThrows": self.savingThrows,
+      "ac": self.ac,
+      "skills": self.skills,
+      "traits": self.traits,
+    }  
   
   def initiative(self):
     return self.abilityScores[2]
@@ -52,13 +58,14 @@ class Stats:
     
     return deepcopy(self.actions)
   
-  def toDict(self, memo, lists):
+  def toDict(self, serializer):
     return {
-      "type": type(self).__name__,
-      "abilityScores": toDict(self.abilityScores, memo, lists),
-      "savingThrows": toDict(self.savingThrows, memo, lists),
-      "skills": toDict(self.skills, memo, lists),
-      "actions": toDict(self.actions, memo, lists),
+      "abilityScores": serializer(self.abilityScores),
+      "ac": serializer(self.ac),
+      "savingThrows": serializer(self.savingThrows),
+      "skills": serializer(self.skills),
+      "actions": serializer(self.actions),
+      "traits": serializer(self.traits)
     }
     
   

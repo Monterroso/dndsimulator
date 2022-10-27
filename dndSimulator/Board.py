@@ -1,4 +1,3 @@
-from dndSimulator.Utils import toDict
 from .Cost import Cost
 
 class Board:
@@ -23,8 +22,7 @@ class Board:
     
     return prevCost
   
-  def toDict(self, memo, lists):
+  def toDict(self, serializer):
     return {
-      "type": type(self).__name__,
-      "tiles": toDict(self.tiles, memo, lists)
+      "tiles": serializer(self.tiles)
     }
