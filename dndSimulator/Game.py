@@ -61,7 +61,7 @@ class Game:
         action (Action): Action to be added to the stack
     """
     self.logger.addLog(LogTypes.ACTION_ADDED, action)
-    if action.origin != None:
+    if action.origin != self:
       cost = action.getCost(self)
       action.origin.payCost(cost)
     self.actionStack.append(action)

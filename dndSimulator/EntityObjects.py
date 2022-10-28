@@ -1,6 +1,6 @@
 from .Entity import Entity
 from .StatsObjects import moveStats, ghostMoveStats
-from .Object.AI.AIObjects import moveAIObject
+from .AI.AIObjects import moveAIObject
 
 
 class EntityFactory:

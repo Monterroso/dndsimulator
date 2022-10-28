@@ -21,17 +21,13 @@ class Serializer:
         for key, value in obj.items():
           item["pairs"].append((self(key), self(value)))
       
+      elif isinstance(obj, list) or isinstance(obj, tuple):
+        item["items"] = []
+        for value in obj:
+          item["items"].append(self(value))
+          
       else:
-        #Check if iteratable
-        try:
-          iterator = iter(obj)
-          item["items"] = []
-          for value in iterator:
-            item["items"].append(self(value))
-            
-        #Otherwise
-        except TypeError:
-           item["value"] = repr(obj)
+        item["value"] = repr(obj)
     
     return {"index": self.memo.index(obj)}
   

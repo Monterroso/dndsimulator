@@ -1,3 +1,3 @@
-import tests
+import tests.movementTest
 
-tests.movementTest()
+tests.movementTest.movementTest()

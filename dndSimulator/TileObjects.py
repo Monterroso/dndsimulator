@@ -40,5 +40,15 @@ BottomLeftTile = Tile(createMoveData(TP, TRP, RP))
 BottomTile = Tile(createMoveData(LP, TLP, TP, TRP, RP))
 BottomRightTile = Tile(createMoveData(LP, TLP, TP))
 
+SingleRowLeftTile = Tile(createMoveData(RP))
+SingleRowInnerTile = Tile(createMoveData(LP, RP))
+SingleRowRightTile = Tile(createMoveData(LP))
+
+SingleColumnTopTile = Tile(createMoveData(BP))
+SingleColumnInnerTile = Tile(createMoveData(BP, TP))
+SingleColumnBotTile = Tile(createMoveData(TP))
+
+SingleTile = Tile(createMoveData())
+
 
 

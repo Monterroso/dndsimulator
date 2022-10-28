@@ -23,16 +23,48 @@ class GeneralObjectCreator {
     }
 
     const obj = this.indexes[index]
-    const creator = this.registers[obj.type]
+    const creator = this.registers[obj.type] || this.default
     
-    if (creator == null) {
-      return this.default.create(obj, this)
+    const type = creator.createType()
+
+    if (type === "list") {
+      const item = []
+      this.memo[index] = item
+      const createdList = creator.create(obj, this)
+      createdList.forEach(el => {
+        item.push(el)
+      })
+
+      return item
     }
-    return creator.create(obj, this)
+    if (type === "object") {
+      const item = {}
+      this.memo[index] = item
+      const createdObj = creator.create(obj, this)
+      Object.entries(createdObj).forEach( ([key, val]) => {
+        item[key] = val
+      })
+
+      return item
+    }
+    if (type === "value") {
+      const item = creator.create(obj, this)
+
+      this.memo[index] = item
+
+      return item
+    }
+
+    throw Error("A creator was selected that does not specify a type")
+
   }
 }
 
 class ArtificalCreator {
+  createType() {
+    return 'object'
+  }
+
   create(obj, objectCreator) {
     const createdObject = {}
     
@@ -53,12 +85,21 @@ class ValueCreator {
   constructor(cast) {
     this.cast = cast
   }
+
+  createType() {
+    return "value"
+  }
+
   create(obj, objectCreator) {
     return this.cast(obj.value)
   }
 }
 
 class DictCreator {
+  createType() {
+    return 'list'
+  }
+
   create(obj, objectCreator) {
     const retList = []
     obj.pairs.forEach(([key, value]) => {
@@ -69,6 +110,10 @@ class DictCreator {
 }
 
 class ListCreator {
+  createType() {
+    return 'list'
+  }
+
   create(obj, objectCreator) {
     return obj.items.map(item => objectCreator.create(item.index))
   }

@@ -14,7 +14,7 @@ from dndSimulator.LogTypes import LogTypes
 from dndSimulator.Actions import PostAction
 
 
-def moveTest():
+def movementTest():
   log = createLogger()
   rounds = 2
   moveGame = createMoveGame(rounds, log)
