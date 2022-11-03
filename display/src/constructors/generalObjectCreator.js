@@ -119,7 +119,7 @@ class ListCreator {
   }
 }
 
-const ArtificialObjects = ["Game", "Board", "Position", "Tile", "Cost", "Entity", "AI", "Stats", "StartTurnAction", "MoveAction", "EndTurnAction"]
+const ArtificialObjects = ["Game", "Board", "Position", "Tile", "Cost", "Entity", "AI", "Stats", "StartTurnAction", "MoveAction", "EndTurnAction", "PreventOverlapMove"]
 
 const numCreator = new ValueCreator(val => Number(val))
 const strCreator = new ValueCreator(val => String(val))

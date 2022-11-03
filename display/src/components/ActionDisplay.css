@@ -1,0 +1,13 @@
+.action-display {
+  display: flex;
+  flex-direction: column;
+  width: 20%;
+}
+
+.action {
+  flex-wrap: wrap;
+}
+
+.highlighted {
+  background-color: burlywood;
+}

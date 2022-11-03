@@ -15,7 +15,7 @@ class PreventOverlapMove(Reaction):
     return False
   
   def perform(self, game):
-    self.toDeny.attemptDeny(self, game)
+    self.toDeny.attemptDeny(self.origin, game)
     
   def toDict(self, serializer):
     return {

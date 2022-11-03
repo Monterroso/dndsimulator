@@ -54,17 +54,21 @@ class Entity:
   def getReaction(self, game):
     reaction = self.ai.getReaction(game, self)
 
-    if Action.isValidAction(reaction, game):
+    if Action.isAction(reaction):
       reaction.setOrigin(self)
-      return reaction
+      
+      if reaction.isValid(game):
+        return reaction
   
   def getAction(self, game):
     #Called when they take their turn, should return some sort of action, returning none ends the turn
     action = self.ai.getAction(game, self)
-
-    if Action.isValidAction(action, game):
+    
+    if Action.isAction(action):
       action.setOrigin(self)
-      return action
+      
+      if action.isValid(game):
+        return action
     
   def toDict(self, serializer):
     return {

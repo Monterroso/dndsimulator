@@ -18,14 +18,12 @@ class AI:
   def getAction(self, game, entity):
     for _, actionGetter in self.actionGetters:
       action = actionGetter(game, entity)
-      if action != None:
-        return action
+      return action
   
   def getReaction(self, game, entity):
     for _, actionGetter in self.reactionGetters:
       action = actionGetter(game, entity)
-      if action != None:
-        return action
+      return action
   
   def toDict(self, serializer):
     return {

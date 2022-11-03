@@ -19,12 +19,12 @@ BP = {BottomPosition: OneMoveCost}
 BRP = {BottomRightPosition: OneAndHalfMoveCost}
 
 def createMoveData(*posCosts):
-    posCostObj = {} 
-    for posCost in posCosts:
-        for pos in posCost:
-            posCostObj[pos] = posCost[pos]
+  posCostObj = {} 
+  for posCost in posCosts:
+    for pos in posCost:
+      posCostObj[pos] = posCost[pos]
 
-    return posCostObj
+  return posCostObj
 
 
 
@@ -49,6 +49,4 @@ SingleColumnInnerTile = Tile(createMoveData(BP, TP))
 SingleColumnBotTile = Tile(createMoveData(TP))
 
 SingleTile = Tile(createMoveData())
-
-
 

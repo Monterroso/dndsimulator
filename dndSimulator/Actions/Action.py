@@ -28,7 +28,7 @@ class Action:
   def resolveAction(self, game):
     if self.isDenied():
       self.onDeny(game)
-    if self.isPrevented():
+    elif self.isPrevented():
       self.onPrevent(game)
     else:
       self.perform(game)
@@ -44,7 +44,12 @@ class Action:
   
   def attemptDeny(self, denier, game):
     self.deniedBy.append(denier)
-    self.denied = True
+    if self.denyLogic(denier, game):
+      self.denied = True
+      return True
+    return False
+  
+  def denyLogic(self, denier, game):
     return True
     
   def attemptPrevent(self, preventer, game):
@@ -99,7 +104,3 @@ class Action:
   @classmethod
   def isAction(cls, action):
     return issubclass(type(action), cls)
-
-  @classmethod
-  def isValidAction(cls, action, game):
-    return  cls.isAction(action) and action.isValid(game)

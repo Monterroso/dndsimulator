@@ -12,13 +12,8 @@ class MoveAction(MainAction):
   def __repr__(self):
     return "{0}: \nEntity: {1}\nStart: {2}\nEnd: {3}".format(self.__class__.__name__, self.mover, self.start, self.destination)
 
-  def attemptDeny(self, denier, game):
-    self.deniedBy.append(denier)
-    if self.origin.denyAttempt(denier, self, game):
-      self.prevented = True
-      return True
-    
-    return False
+  def denyLogic(self, denier, game):
+    return self.origin.attemptDeny(denier, self, game)
 
   def getMover(self):
     return self.mover

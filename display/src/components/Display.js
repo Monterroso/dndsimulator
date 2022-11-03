@@ -3,11 +3,13 @@ import createGeneralObjectCreator from "../constructors/generalObjectCreator"
 import ActionDisplay from "./ActionDisplay"
 import BoardDisplay from "./BoardDisplay"
 import EntityDisplay from "./EntityDisplay"
+import "./Display.css"
 
 const Display = () => {
   const [gameIndex, setGameIndex] = useState(0)
   const [max, setMax] = useState(0)
   const [entityDisplay, setEntityDisplay] = useState()
+  const [actionClicked, setActionClicked] = useState()
 
   const [gameData, setGameData] = useState()
 
@@ -59,11 +61,13 @@ const Display = () => {
 
     return (
       <div>
+        <div className="main-display">
+          <ActionDisplay actions={actions} clickNum={actionClicked} setClicked={setActionClicked}/>
+          <BoardDisplay dims={[x, y]} entityPosObject={posEntity} setEntityDisplay={setEntityDisplay}/>
+          <EntityDisplay entity={entityDisplay}/>
+        </div>
         <div onClick={() => setGameIndex(value => Math.max(0,value - 1))}>Back</div>
         <div onClick={() => setGameIndex(value => Math.min(max - 1,value + 1))}>Forward</div>
-        <ActionDisplay actions={actions}/>
-        <BoardDisplay dims={[x, y]} entityPosObject={posEntity} setEntityDisplay={setEntityDisplay}/>
-        <EntityDisplay entity={entityDisplay}/>
       </div>
     )
   }

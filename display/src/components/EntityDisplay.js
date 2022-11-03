@@ -1,6 +1,8 @@
+import "./EntityDisplay.css"
+
 const EntityDisplay = ({entity}) => {
   return (
-    <span>
+    <span className="entity-display">
       {
         entity && entity.name
       }

@@ -27,7 +27,7 @@ class Game:
   
   def getNextAction(self):
     if not self.isActionStackEmpty():
-      return self.actionStack[0]
+      return self.actionStack[-1]
 
   def getEntityActionTakenStack(self, filter):
     return [action for action in self.actionsTakenStack if filter(action)]
@@ -81,7 +81,7 @@ class Game:
     allPassed = True
     for entity in self.turnOrder[:-1]:
       action = entity.getReaction(self)
-      if Reaction.isValidAction(action, self):
+      if Reaction.isAction(action) and action.isValid(self):
         self.addAction(action)
         allPassed = False
           
@@ -102,6 +102,8 @@ class Game:
     One round is performed for reactions if the stack gets emptied, if still empty then exists
     """
     while not self.isActionStackEmpty():
+      self.buildReactionStack()
+      
       actionToDo = self.actionStack.pop()
       self.performAction(actionToDo)
       nextAction = actionToDo.getNextAction(self)
@@ -109,8 +111,6 @@ class Game:
       if nextAction != None:
         self.addAction(nextAction)
       
-      self.buildReactionStack()
-
   def advanceTurn(self):
     self.turnNumber += 1
     if self.turnNumber == len(self.turnOrder):
@@ -127,7 +127,7 @@ class Game:
       entity = self.getCurrentEntityTurn()
       action = entity.getAction(self)
       
-      if MainAction.isValidAction(action, self):
+      if MainAction.isAction(action) and action.isValid(self):
         self.addAction(action)
         self.resolveReactionStack()
       else:
