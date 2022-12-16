@@ -5,13 +5,13 @@ from dndSimulator.LoggerObjects import createLogger
 
 from .context import dndSimulator
 
-from dndSimulator.BoardObjects import simpleBoard
+from dndSimulator.BoardObjects import mediumBoard
 
 
 def movementTest():
   log = createLogger()
   rounds = 2
-  moveGame = createMoveGame(simpleBoard, rounds, log)
+  moveGame = createMoveGame(mediumBoard, rounds, log)
   moveGame.playGame()
 
   out_file = open("./output.json", "w")

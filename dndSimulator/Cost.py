@@ -2,6 +2,12 @@ from enum import Enum, auto
 import copy
 
 class Cost:
+  """A cost object contains cost information
+  
+  First layer is the category, then the feature with cost
+  
+  An infinite cost is always invalid, and infinite cost is always an infinite cost
+  """
   class Categories(Enum):
     STANDARD = auto()
     MOVE = auto()
@@ -42,8 +48,16 @@ class Cost:
 
   def setInfinite(self):
     self.isInfinite = True
+    
+  def isInfinite(self):
+    return self.isInfinite
 
   def isValid(self):
+    """Determines whether the cost object is valid, if any of the features are negative or is infinite
+
+    Returns:
+        Boolean: Whether the cost object is valid
+    """
     if self.isInfinite:
       return False
 
@@ -65,6 +79,15 @@ class Cost:
 
   def subCost(self, cost, feature, category):
     self.addCost(-cost, feature, category)
+    
+  def sumUp(self):
+    sumVal = 0
+    for _, featureCost in self.costs.items():
+      for _, cost in featureCost.items():
+        sumVal += cost
+        
+    return sumVal
+      
       
   def toDict(self, serializer):
     return {

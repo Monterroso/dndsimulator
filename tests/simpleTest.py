@@ -8,7 +8,6 @@ from dndSimulator.Logger import Logger
 from dndSimulator.EntityObjects import entityFactory
 from dndSimulator.PositionObjects import OriginPosition
 from dndSimulator.LogTypes import LogTypes
-from dndSimulator.Actions import PostAction
 
 
 def simpleTest():
@@ -25,7 +24,7 @@ def simpleTest():
   
   # print(testGame.getEntityActionTakenStack(filter))
 
-  logs = log.getLog(filter=[LogTypes.ENTITY_MOVED], dataFilter=[PostAction])
+  logs = log.getLog(filter=[LogTypes.ENTITY_MOVED], dataFilter=[])
   
   positionMap = {}
   

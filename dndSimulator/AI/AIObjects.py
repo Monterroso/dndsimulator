@@ -1,5 +1,5 @@
 from .AI import AI
-from .ActionGetter import moveAround, denyEnemyMove
+from dndSimulator.ActionGetter import moveAround, denyEnemyMove
 
 
 moveAIObject = AI()

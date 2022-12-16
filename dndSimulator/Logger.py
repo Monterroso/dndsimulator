@@ -1,4 +1,4 @@
-from dndSimulator.Utils import Serializer
+from dndSimulator.Serialize.Serializer import Serializer
 
 
 class Logger:

@@ -67,3 +67,5 @@ def createBoard(width, height):
 simpleBoard = Board(createBoard(5, 5))
 
 twoTileBoard = Board(createBoard(1, 2))
+
+mediumBoard = Board(createBoard(10,15))

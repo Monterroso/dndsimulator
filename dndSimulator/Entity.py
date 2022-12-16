@@ -1,15 +1,14 @@
-from .Actions import Action, EndTurnAction
-
+from .Actions import Action, EndTurnAction, MoveAction
+from dndSimulator.Stats import Traits, allSavingThrowsWithStat, allSkillsWithStat
 
 class Entity:
-  def __init__(self, name, conditions, stats, ai, team):
+  def __init__(self, name, stats, ai, team):
     self.name = name
     self.ai = ai
-    self.currentStats = stats.getBase()
     self.stats = stats
-    self.conditions = [stats.filterConditions(conditions)]
-    self.availableActions = stats.getTurnStartActions(self)
+    self.availableActions = self.getTurnStartActions()
     self.team = team
+    self.equipment = []
 
   def __repr__(self):
     return self.name
@@ -17,23 +16,25 @@ class Entity:
   def getTeam(self):
     return self.team
 
-  def getInitiative(self):
-    return self.stats.initiative()
+  def getAbilityScoreModifier(self, abilityScore):
+    return self.stats.getAbilityScoreModifier(abilityScore)
   
-  def getModifiedStats(self):
-    return 
+  def getSavingThrow(self, savingThrow):
+    stat = allSavingThrowsWithStat[savingThrow]
+    return self.getAbilityScoreModifier(stat) + self.stats.getSavingThrowBonus(savingThrow)
   
-  def getStat(self, stat):
-    return self.stats.getStat(stat)
+  def getSkill(self, skill):
+    stat = allSkillsWithStat[skill]
+    return self.getAbilityScoreModifier(stat) + self.stats.getSkillBonus(skill)
+  
+  def getTurnStartActions(self):
+    return self.stats.getActions()
 
   def startTurn(self):
-    self.availableActions = self.stats.getTurnStartActions(self)
-
-  def getConditions(self):
-    return self.conditions
+    self.availableActions = self.getTurnStartActions()
 
   def getModifiedCost(self, cost):
-    return self.stats.getModifiedCost(cost)
+    return cost
 
   def canPayCost(self, cost):
     newCost = self.getModifiedCost(cost)
@@ -42,14 +43,19 @@ class Entity:
     return nextCost.isValid()
 
   def payCost(self, cost):
-    newCost = self.stats.getModifiedCost(cost)
+    newCost = self.getModifiedCost(cost)
     self.availableActions -= newCost
   
   def attemptDeny(self, denier, action, game):
-    return self.stats.attemptDeny(self, denier, action, game)
+    if type(action) == MoveAction:
+      if Traits.INCORPOREAL in self.stats.traits:
+        return False
+      return True
+    
+    return True
   
-  def attemptPrevent(self, denier, action, game):
-    return self.stats.attemptPrevent(self, denier, action, game)
+  def attemptPrevent(self, preventer, action, game):
+    return True
   
   def getReaction(self, game):
     reaction = self.ai.getReaction(game, self)
@@ -61,7 +67,6 @@ class Entity:
         return reaction
   
   def getAction(self, game):
-    #Called when they take their turn, should return some sort of action, returning none ends the turn
     action = self.ai.getAction(game, self)
     
     if Action.isAction(action):
@@ -75,8 +80,7 @@ class Entity:
       "name": serializer(self.name),
       "ai": serializer(self.ai),
       "stats": serializer(self.stats),
-      "currentStats": serializer(self.currentStats),
-      "conditions": serializer(self.conditions),
       "availableActions": serializer(self.availableActions),
-      "team": serializer(self.team)
+      "team": serializer(self.team),
+      "equipment": serializer(self.equipment)
     }

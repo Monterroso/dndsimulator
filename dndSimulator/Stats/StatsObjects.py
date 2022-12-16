@@ -1,9 +1,9 @@
 from .Stats import Stats
-from .Cost import Cost
-from .StatItems import Traits
+from dndSimulator.Cost import Cost
+from .Traits import Traits
 
 actions = Cost()
-actions.addCost(1.5, Cost.Features.BASE, Cost.Categories.MOVE)
+actions.addCost(6.5, Cost.Features.BASE, Cost.Categories.MOVE)
 
 moveStats = Stats(actions=actions)
 

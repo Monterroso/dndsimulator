@@ -1,5 +1,5 @@
 from .Entity import Entity
-from .StatsObjects import moveStats, ghostMoveStats
+from .Stats import moveStats, ghostMoveStats
 from .AI.AIObjects import moveAIObject
 
 
@@ -9,11 +9,13 @@ class EntityFactory:
 
   def createMoveEntity(self, team):
     self.entity += 1
-    return Entity("{0} moveEntity".format(self.entity), [], moveStats, moveAIObject, team)
+    return Entity("{0} moveEntity".format(self.entity), moveStats, moveAIObject, team)
 
   def createGhostMoveEntity(self, team):
       self.entity += 1
-      return Entity("{0} ghostMoveEntity".format(self.entity), [], ghostMoveStats, moveAIObject, team)
+      return Entity("{0} ghostMoveEntity".format(self.entity), ghostMoveStats, moveAIObject, team)
+    
+  def create
 
 
 entityFactory = EntityFactory()

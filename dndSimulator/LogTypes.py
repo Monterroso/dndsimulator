@@ -7,3 +7,8 @@ class LogTypes(Enum):
   GAME_START = auto()
   GAME_END = auto()
   ENTITY_MOVED = auto()
+  ENTITY_REMOVED = auto()
+  ENTITY_ADDED = auto()
+  ITEM_MOVED = auto()
+  ITEM_REMOVED = auto()
+  ITEM_ADDED = auto()

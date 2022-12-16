@@ -2,6 +2,15 @@ from dndSimulator.Actions import MoveAction
 from random import choice
 
 def getAction(game, entity):
+  """Moves around the board randomly
+
+  Args:
+      Game (Game): current game
+      Entity (Entity): entity the ai is attached to
+
+  Returns:
+      Action: Move action if any are available
+  """
   board = game.board
   curSpot = game.getEntityPosition(entity)
   

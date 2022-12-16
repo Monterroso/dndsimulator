@@ -1,8 +1,10 @@
 from dndSimulator.Cost import Cost
-import uuid
+from dndSimulator.LogTypes import LogTypes
 
 #Base for all actions
 class Action:
+  """Base Action to be used by all other actions
+  """
   def __init__(self, origin=None, parent=None, child=None):
     self.origin = origin
     self.parent = parent
@@ -11,33 +13,52 @@ class Action:
     self.denied = False
     self.preventedBy = []
     self.prevented = False
-    self.id = uuid.uuid1()
     
-  def getId(self):
-    return self.id
     
   def __eq__(self, other):
-    return type(other) == type(self) and self.getId() == other.getId()
+    return type(other) == type(self) and self.origin == other.origin \
+      and self.parent == other.parent and self.child == other.child \
+      and self.deniedBy == other.deniedBy and self.denied == other.denied \
+      and self.preventedBy == other.preventedBy and self.prevented == other.prevented
     
   def __repr__(self):
     return "{0}".format(self.__class__.__name__)
 
   def getCost(self, game):
-    return Cost()
+    """Gets the cost of the action given the game
 
-  def resolveAction(self, game):
-    if self.isDenied():
-      self.onDeny(game)
-    elif self.isPrevented():
-      self.onPrevent(game)
-    else:
-      self.perform(game)
+    Args:
+        game (Game): game to get cost from
+
+    Returns:
+        Cost: Cost of this action
+    """
+    return Cost()
   
-  def perform(self, game):
+  def onAdd(self, game, tracker):
+    cost = self.getCost(self, game)
+    self.origin.payCost(cost)
+    tracker.addAction(LogTypes.ACTION_ADDED, {"Action": self, "Cost": cost})
+    
+  def undoOnAdd(self, tracker):
+    actionType, objectInfo, actionInfo = tracker.getRecentAction()
+    cost = objectInfo["Cost"]
+    self.origin.payCost(-cost)
+    tracker.undo()
+
+  def resolveAction(self, game, tracker):
+    if self.isDenied():
+      self.onDeny(game, tracker)
+    elif self.isPrevented():
+      self.onPrevent(game, tracker)
+    else:
+      self.perform(game, tracker)
+  
+  def perform(self, game, tracker):
     pass
   
-  def getNextAction(self, game):
-    return None
+  def undoPerform(self, game, tracker):
+    pass
 
   def isValid(self, game):
     return False
@@ -57,9 +78,11 @@ class Action:
     self.prevented = True
     return True
 
-  def onPrevent(self, game):
+  def onPrevent(self, game, tracker):
     if self.origin is not None:
       self.origin.payCost(-self.getCost(game))
+      
+  def undoOnPrevent(self, game, tracker)
       
   def onDeny(self, game):
     pass
@@ -94,7 +117,6 @@ class Action:
       "origin": serializer(self.origin),
       "parent": serializer(self.parent),
       "child": serializer(self.child),
-      "id": serializer(self.id),
       "deniedBy": serializer(self.deniedBy),
       "denied": serializer(self.denied),
       "preventedBy": serializer(self.preventedBy),

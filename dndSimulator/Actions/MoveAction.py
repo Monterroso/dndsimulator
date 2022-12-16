@@ -25,11 +25,11 @@ class MoveAction(MainAction):
     game.moveEntity(self.mover, self.destination)
 
   def getCost(self, game):
-      return game.board.getTileAt(self.destination).getCostFrom(self.start - self.destination)
+    return game.getCostFrom(self.start, self.destination, self.mover)
       
   def isValid(self, game):
     if self.mover == self.origin and self.mover.canPayCost(self.getCost(game)):
-        return super().isValid(game)
+      return super().isValid(game)
     return False
 
   def isEntityAction(self):

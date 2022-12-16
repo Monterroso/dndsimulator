@@ -1,0 +1,56 @@
+Game
+
+Board: A board contains a set of tiles
+
+Tile: Each tile has functions which gets all things on a tile. Tile has a list of all things on a tile
+
+Board Object: each board object has a reference to its position on the board
+
+Position Object: contains information regarding a position somewhere
+
+So what is the road map, and what is reasonable for the week period?
+Well, what is reasonable is being very simple just with pure dps and actions, what needs to be handled?
+Well, we need to be able to move, right now it's capable of doing this.
+
+Okay, so we can move across a board, can we display it? How would we properly display it? 
+Need to figure out how we would deploy the frontend
+Then, need to setup a django backend for this to run
+Then we need to deploy this on an ec2 instance
+
+Should try to finish up the project itself both today and tomorrow, and then start working at the infrastructure
+So what are we reasonably able to do during this time?
+Well, where are we at? So characters can move, they can deny movement onto their space, ghosts can phase through 
+and ignore this limitation 
+
+So what does bfs do? Well, all it does is it gets 
+
+What do we want, ideally? 
+  Entities to be able to look at a board, and be able to traverse it to get to a specific spot. 
+  Entities have health, and are able to attack each other.
+
+So we want a centralized location that registers everything, and sends a signal when anything happens
+
+It's a list of the original states, and then includes what has changed with them and with that, you can get the current state 
+
+So the internals won't trigger a redo, however, each action will include all the relevant internals.
+
+Don't describe the inner details, just describe the outer workings
+
+So there's undo and redo, and then there's go back
+Undo fully removes the last action, go back just goes back, still apart of the stack
+
+maybe we can freeze the log in order to go back and forward
+unfreeze it when we want to undo or go forward.
+
+So log has a list of actions and the info to undo
+
+So what we are doing is just giving all the information in order to change the game object
+So following the instructions, could have fully functional
+
+So we have our object lists, their origin position, and then we have a list of what happens.
+
+So here's where we are currently at. 
+
+Don't keep track of anything other than actions, after perform and when added. When an action is performed, it's immediately removed.
+Tracker will only log the details of the actions
+Reason for this is that game only changes based upon actions
