@@ -1,4 +1,4 @@
-from .Actions import Action, EndTurnAction, MoveAction
+from .Actions import Action, EndTurnAction, MoveAction, StartTurnAction
 from dndSimulator.Stats import Traits, allSavingThrowsWithStat, allSkillsWithStat
 
 class Entity:
@@ -9,6 +9,8 @@ class Entity:
     self.availableActions = self.getTurnStartActions()
     self.team = team
     self.equipment = []
+    
+    self.turnBroken = False
 
   def __repr__(self):
     return self.name
@@ -29,9 +31,21 @@ class Entity:
   
   def getTurnStartActions(self):
     return self.stats.getActions()
+  
+  def getAvailableActions(self):
+    return self.availableActions
+  
+  def setAvailableActions(self, newAvailableActions):
+    oldActions = self.availableActions
+    self.availableActions = newAvailableActions
+    
+    return oldActions
 
   def startTurn(self):
-    self.availableActions = self.getTurnStartActions()
+    return self.setAvailableActions(self.getTurnStartActions())
+    
+  def undoStartTurn(self, oldActions):
+    self.setAvailableActions(oldActions)
 
   def getModifiedCost(self, cost):
     return cost
@@ -43,8 +57,11 @@ class Entity:
     return nextCost.isValid()
 
   def payCost(self, cost):
+    oldCost = self.availableActions
     newCost = self.getModifiedCost(cost)
     self.availableActions -= newCost
+    
+    return oldCost
   
   def attemptDeny(self, denier, action, game):
     if type(action) == MoveAction:
@@ -67,6 +84,10 @@ class Entity:
         return reaction
   
   def getAction(self, game):
+    if self.turnBroken == False:
+      self.turnBroken = True
+      return StartTurnAction(self)
+    
     action = self.ai.getAction(game, self)
     
     if Action.isAction(action):
@@ -74,6 +95,9 @@ class Entity:
       
       if action.isValid(game):
         return action
+      
+    self.turnBroken = False
+    return EndTurnAction(self)
     
   def toDict(self, serializer):
     return {
@@ -82,5 +106,6 @@ class Entity:
       "stats": serializer(self.stats),
       "availableActions": serializer(self.availableActions),
       "team": serializer(self.team),
-      "equipment": serializer(self.equipment)
+      "equipment": serializer(self.equipment),
+      "turnBroken": serializer(self.turnBroken)
     }

@@ -1,14 +1,18 @@
-from enum import Enum, auto
+from enum import IntEnum, auto
 
-class LogTypes(Enum):
-  ROUND_START = auto()
-  ACTION_ADDED = auto()
-  ACTION_PERFORMED = auto()
-  GAME_START = auto()
-  GAME_END = auto()
-  ENTITY_MOVED = auto()
-  ENTITY_REMOVED = auto()
-  ENTITY_ADDED = auto()
-  ITEM_MOVED = auto()
-  ITEM_REMOVED = auto()
-  ITEM_ADDED = auto()
+class LogTypes(IntEnum):
+  ROUND_START = 0
+  ACTION_ADDED = 1
+  ACTION_PERFORMED = 2
+  ACTION_DENIED = 3
+  ACTION_PREVENTED = 4
+  GAME_START = 5
+  GAME_END = 6
+  ENTITY_MOVED = 7
+  ENTITY_REMOVED = 8
+  ENTITY_ADDED = 9
+  ITEM_MOVED = 10
+  ITEM_REMOVED = 11
+  ITEM_ADDED = 12
+  END_TURN = 13
+  START_TURN = 14

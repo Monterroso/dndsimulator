@@ -15,13 +15,13 @@ class Game:
     self.roundCount = 0
     self.endCons = endCons
     self.tracker = tracker
-    self.actionsTakenStack = []
+    self.actionsAddedAndPerformed = []
     self.itemPositions = {}
-    
-    tracker.addObject(self)
 
     for entity, pos in entitiesPositions:
       self.addEntity(entity, pos)
+      
+    tracker.addObject(self)
 
   def isActionStackEmpty(self):
     return len(self.actionStack) == 0
@@ -37,12 +37,15 @@ class Game:
     destinationTile = self.board.getTileAt(destination)
     fromPosition = destination - origin
     
-    baseCost = destinationTile.getCostFrom(self, fromPosition)
+    baseCost = destinationTile.getCostFrom(fromPosition)
     
     return baseCost
 
-  def getEntityActionTakenStack(self, filter):
-    return [action for action in self.actionsTakenStack if filter(action)]
+  def getActionsAddedAndPerformed(self, filter):
+    return [[status, action] for status, action in self.actionsAddedAndPerformed if filter(status, action)]
+
+  def getTurnNumber(self):
+    return self.turnNumber
 
   def getCurrentEntityTurn(self):
     return self.turnOrder[self.turnNumber]
@@ -50,38 +53,22 @@ class Game:
   def getTurnsUntilEntityTurn(self, entity):
     (self.turnNumber - self.turnOrder.index(entity)) % len(self.turnOrder)
 
-  def addEntity(self, entity, pos, ghost=False):
-    
-    if not ghost:
-      self.tracker.addAction(LogTypes.ENTITY_ADDED, {entity, pos})
-
+  def addEntity(self, entity, pos):
     self.turnOrder.append(entity)
     self.turnOrder.sort( key=lambda entity: entity.getSkill(Skills.Initiative))
 
     self.entityPositions[entity] = pos
     
-  def addItem(self, item, pos, ghost=False):
-    
-    if not ghost:
-      self.tracker.addAction(LogTypes.ITEM_ADDED, {item, pos})
-
+  def addItem(self, item, pos):
     self.itemPositions[item] = pos
     
-  def removeEntity(self, entity, ghost=False):
-    
-    if not ghost:
-      self.tracker.addAction(LogTypes.ENTITY_REMOVED, {entity})
-    
+  def removeEntity(self, entity):
     self.turnOrder.remove(entity)
     self.turnOrder.sort( key=lambda entity: entity.getSkill(Skills.Initiative))
     
     del self.entityPositions[entity]
 
-  def removeItem(self, item, ghost=False):
-    
-    if not ghost:
-      self.tracker.addAction(LogTypes.ITEM_REMOVED, {item})
-    
+  def removeItem(self, item):
     del self.itemPositions[item]
 
   def getEntityPosition(self, entity):
@@ -106,41 +93,27 @@ class Game:
         
     return items
 
-  def moveEntity(self, entity, destination, ghost=False):
-    
-    if not ghost:
-      self.tracker.addAction(LogTypes.ENTITY_MOVED, {entity, destination})
-    
+  def moveEntity(self, entity, destination):
     self.entityPositions[entity] = destination
     
-  def moveItem(self, item, destination, ghost=False):
-    
-    if not ghost:
-      self.tracker.addAction(LogTypes.ITEM_MOVED, {item, destination})
-    
+  def moveItem(self, item, destination): 
     self.itemPositions[item] = destination
 
-  def addAction(self, action, ghost=False):
+  def addAction(self, action):
     """Adds action to stack, handles cost if origin of action is entity
 
     Args:
         action (Action): Action to be added to the stack
     """
-    
-    if not ghost:
-      self.tracker.addAction(LogTypes.ACTION_ADDED, {action})
       
-    action.onAdd(self)
+    action.onAdd(self, self.tracker)
     self.actionStack.append(action)
+    self.actionsAddedAndPerformed.append(["added", action])
 
-  def performAction(self, action, ghost=False):
-    
-    if not ghost:
-      self.tracker.addAction(LogTypes.ACTION_PERFORMED, {action})
+  def performAction(self, action):
       
-    self.actionsTakenStack.append(action)
-    self.tracker.serialize(self)
-    action.resolveAction(self)
+    self.actionsAddedAndPerformed.append(["performed", action])
+    action.resolveAction(self, self.tracker)
       
   def cycleReactions(self):
     """Cycles through all entities, getting reactions
@@ -178,44 +151,35 @@ class Game:
       self.performAction(actionToDo)
       
   def advanceTurn(self):
+    oldTurn = self.turnNumber
+    oldRound = self.roundCount
     self.turnNumber += 1
     if self.turnNumber == len(self.turnOrder):
       self.turnNumber = 0
       self.roundCount += 1
-      self.tracker.addLog(LogTypes.ROUND_START)
+      
+    return {"OldTurn": oldTurn, "OldRound": oldRound}
+      
+  def reverseTurn(self):
+    self.turnNumber -= 1
+    if self.turnNumber < 0:
+      self.turnNumber = len(self.turnOrder) - 1
+      self.roundCount -= 1
 
-  def playTurn(self):
-    self.addAction(StartTurnAction(self))
-    self.resolveReactionStack()
-    
-    skippedAction = False
-    while not skippedAction:
+  def playGame(self):
+    while not self.checkGameEnd():
       entity = self.getCurrentEntityTurn()
       action = entity.getAction(self)
       
-      if MainAction.isAction(action) and action.isValid(self):
-        self.addAction(action)
-        self.resolveReactionStack()
-      else:
-        skippedAction = True
-      
-    self.addAction(EndTurnAction(self))
-    self.resolveReactionStack()
-
+      self.addAction(action)
+      self.resolveReactionStack()
+        
   def checkGameEnd(self):
     for endCon in self.endCons:
       if endCon(self) == True:
         return True
       
     return False
-      
-  def playGame(self):
-    self.tracker.addLog(LogTypes.GAME_START)
-    
-    while not self.checkGameEnd(): 
-      self.playTurn()
-
-    self.tracker.addLog(LogTypes.GAME_END)
     
   def toDict(self, serializer):
     return {
@@ -225,7 +189,7 @@ class Game:
       "actionStack": serializer(self.actionStack),
       "turnNumber": serializer(self.turnNumber),
       "roundCount": serializer(self.roundCount),
-      "actionsTakenStack": serializer(self.actionsTakenStack),
+      "actionsAddedAndPerformed": serializer(self.actionsAddedAndPerformed),
     }
 
     

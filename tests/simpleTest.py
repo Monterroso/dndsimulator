@@ -21,8 +21,6 @@ def simpleTest():
   json.dump(log.getSerialized(), out_file)
   
   # out_file.close()
-  
-  # print(testGame.getEntityActionTakenStack(filter))
 
   logs = log.getLog(filter=[LogTypes.ENTITY_MOVED], dataFilter=[])
   

@@ -19,6 +19,10 @@ class Cost:
 
   def __init__(self, isInfinite=False):
     self.costs = {}
+    for enum in Cost.Categories:
+      self.costs[enum] = {}
+      for innerenum in Cost.Features:
+        self.costs[enum][innerenum] = 0
 
     self.isInfinite = isInfinite
 
@@ -45,6 +49,18 @@ class Cost:
         costObject.subCost(cost, feature, category)
     
     return costObject
+  
+  def __eq__(self, other):
+    
+    if type(self) != type(other):
+      return False
+    
+    for category, featureCost in other.costs.items():
+      for feature, cost in featureCost.items():
+        if cost != other.costs[category][feature]:
+          return False
+        
+    return True
 
   def setInfinite(self):
     self.isInfinite = True
@@ -68,13 +84,7 @@ class Cost:
 
     return True
       
-  def addCost(self, cost, feature, category):
-    if category not in self.costs:
-      self.costs[category] = {}
-
-    if feature not in self.costs[category]:
-      self.costs[category][feature] = 0
-        
+  def addCost(self, cost, feature, category):   
     self.costs[category][feature] += cost
 
   def subCost(self, cost, feature, category):
@@ -87,7 +97,6 @@ class Cost:
         sumVal += cost
         
     return sumVal
-      
       
   def toDict(self, serializer):
     return {

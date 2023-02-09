@@ -1,4 +1,5 @@
 from .MainAction import MainAction
+from dndSimulator.LogTypes import LogTypes
 
 #Actions taken by entity
 class MoveAction(MainAction):
@@ -7,7 +8,7 @@ class MoveAction(MainAction):
     self.destination = destination
     self.start = start
     
-    super().__init__(parent=parent, child=child)
+    super().__init__(origin=mover, parent=parent, child=child)
     
   def __repr__(self):
     return "{0}: \nEntity: {1}\nStart: {2}\nEnd: {3}".format(self.__class__.__name__, self.mover, self.start, self.destination)
@@ -21,8 +22,13 @@ class MoveAction(MainAction):
   def getDestination(self):
     return self.destination
 
-  def perform(self, game):
+  def perform(self, game, tracker):
     game.moveEntity(self.mover, self.destination)
+    tracker.addAction(LogTypes.ENTITY_MOVED, {"Action": self, "Mover": self.mover, "Destination": self.destination, "Start": self.start})
+    
+  def undoPerform(self, game, tracker):
+    super().undoPerform(game, tracker)
+    game.moveEntity(self.mover, self.origin)
 
   def getCost(self, game):
     return game.getCostFrom(self.start, self.destination, self.mover)

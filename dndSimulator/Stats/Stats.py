@@ -33,7 +33,6 @@ class Stats:
     return {
       "abilityScores": serializer(self.abilityScores),
       "savingThrowsBonus": serializer(self.savingThrowsBonus),
-      "savingThrows": serializer(self.savingThrowsBonus),
       "skillsBonus": serializer(self.skillsBonus),
       "actions": serializer(self.actions),
       "traits": serializer(self.traits)

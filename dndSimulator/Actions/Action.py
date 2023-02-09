@@ -9,17 +9,16 @@ class Action:
     self.origin = origin
     self.parent = parent
     self.child = child
-    self.deniedBy = []
-    self.denied = False
-    self.preventedBy = []
-    self.prevented = False
-    
+    self.deniedBy = set()
+    self.deniedByFailed = set()
+    self.preventedBy = set()
+    self.preventedByFailed = set()
     
   def __eq__(self, other):
     return type(other) == type(self) and self.origin == other.origin \
       and self.parent == other.parent and self.child == other.child \
-      and self.deniedBy == other.deniedBy and self.denied == other.denied \
-      and self.preventedBy == other.preventedBy and self.prevented == other.prevented
+      and self.deniedBy == other.deniedBy and self.deniedByFailed == other.deniedByFailed \
+      and self.preventedBy == other.preventedBy and self.preventedByFailed == other.preventedByFailed
     
   def __repr__(self):
     return "{0}".format(self.__class__.__name__)
@@ -36,9 +35,9 @@ class Action:
     return Cost()
   
   def onAdd(self, game, tracker):
-    cost = self.getCost(self, game)
-    self.origin.payCost(cost)
-    tracker.addAction(LogTypes.ACTION_ADDED, {"Action": self, "Cost": cost})
+    cost = self.getCost(game)
+    oldActions = self.origin.payCost(cost)
+    tracker.addAction(LogTypes.ACTION_ADDED, {"Action": self, "NewCost": cost, "OldActions": oldActions})
     
   def undoOnAdd(self, tracker):
     actionType, objectInfo, actionInfo = tracker.getRecentAction()
@@ -53,55 +52,99 @@ class Action:
       self.onPrevent(game, tracker)
     else:
       self.perform(game, tracker)
+      
+  def undoResolveAction(self, game, tracker):
+    if self.isDenied():
+      self.undoOnDeny(game, tracker)
+    elif self.isPrevented():
+      self.undoOnPrevent(game, tracker)
+    else:
+      self.undoPerform(game, tracker)
   
   def perform(self, game, tracker):
-    pass
+    tracker.addAction(LogTypes.ACTION_PERFORMED, {"Action": self})
   
   def undoPerform(self, game, tracker):
-    pass
+    tracker.undo()
 
   def isValid(self, game):
     return False
   
   def attemptDeny(self, denier, game):
-    self.deniedBy.append(denier)
+    
     if self.denyLogic(denier, game):
-      self.denied = True
+      self.deniedBy.add(denier)
       return True
+    
+    self.deniedByFailed.add(denier)
     return False
+  
+  def undoAttemptDeny(self, denier, game):
+    if denier in self.deniedBy:
+      self.deniedBy.remove(denier)
+      
+    if denier in self.deniedByFailed:
+      self.deniedByFailed.remove(denier)
   
   def denyLogic(self, denier, game):
     return True
+  
+  def preventLogic(self, preventer, game):
+    return True
     
   def attemptPrevent(self, preventer, game):
-    self.preventedBy.append(preventer)
-    self.prevented = True
-    return True
+    if self.preventLogic(preventer, game):
+      self.preventedBy.add(preventer)
+      return True
+    
+    self.preventedByFailed.add(preventer)
+    return False
+  
+  def undoAttemptPrevent(self, preventer, game):
+    if preventer in self.preventedBy:
+      self.preventedBy.remove(preventer)
+      
+    if preventer in self.preventedByFailed:
+      self.preventedByFailed.remove(preventer)
 
   def onPrevent(self, game, tracker):
     if self.origin is not None:
-      self.origin.payCost(-self.getCost(game))
+      cost = -self.getCost(game)
+      self.origin.payCost(cost)
+      tracker.addAction(LogTypes.ACTION_PREVENTED, {"Action": self, "Cost": cost})
       
-  def undoOnPrevent(self, game, tracker)
+  def undoOnPrevent(self, game, tracker):
+    if self.origin is not None:
+      self.origin.payCost(self.getCost(game))
+      tracker.undo()
       
-  def onDeny(self, game):
-    pass
+  def onDeny(self, game, tracker):
+    tracker.addAction(LogTypes.ACTION_DENIED, {"Action": self})
+  
+  def undoOnDeny(self, game, tracker):
+    tracker.undo()
   
   def isPreventer(self, entity):
     if entity in self.preventedBy:
       return True
     return False
+  
+  def hasAttemptedPrevent(self, entity):
+    return entity in self.preventedBy or entity in self.preventedByFailed
     
   def isDenier(self, entity):
     if entity in self.deniedBy:
       return True
     return False
   
+  def hasAttemptedDeny(self, entity):
+    return entity in self.deniedBy or entity in self.deniedByFailed
+  
   def isPrevented(self):
-    return self.prevented
+    return len(self.preventedBy) > 0
   
   def isDenied(self):
-    return self.denied
+    return len(self.deniedBy) > 0
       
   def setOrigin(self, origin):
     self.origin = origin
@@ -118,9 +161,9 @@ class Action:
       "parent": serializer(self.parent),
       "child": serializer(self.child),
       "deniedBy": serializer(self.deniedBy),
-      "denied": serializer(self.denied),
+      "deniedByFailed": serializer(self.deniedByFailed),
       "preventedBy": serializer(self.preventedBy),
-      "prevented": serializer(self.prevented),
+      "preventedByFailed": serializer(self.preventedByFailed),
     }
   
   @classmethod

@@ -14,8 +14,6 @@ class EntityFactory:
   def createGhostMoveEntity(self, team):
       self.entity += 1
       return Entity("{0} ghostMoveEntity".format(self.entity), ghostMoveStats, moveAIObject, team)
-    
-  def create
 
 
 entityFactory = EntityFactory()

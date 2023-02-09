@@ -20,6 +20,12 @@ class Position:
   def __repr__(self):
     return "({0}, {1})".format(self.x, self.y)
   
+  def max(self, other):
+    return Position(max(self.x, other.x), max(self.y, other.y))
+  
+  def min(self, other):
+    return Position(min(self.x, other.x), min(self.y, other.y))
+  
   def toDict(self, serializer):
     return {
       "x": serializer(self.x),

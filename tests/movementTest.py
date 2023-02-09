@@ -1,7 +1,7 @@
 import json
 from dndSimulator.GameObjects import createMoveGame
 
-from dndSimulator.LoggerObjects import createLogger
+from dndSimulator.Tracker import Tracker
 
 from .context import dndSimulator
 
@@ -9,14 +9,14 @@ from dndSimulator.BoardObjects import simpleBoard
 
 
 def movementTest():
-  log = createLogger()
+  tracker = Tracker()
   rounds = 2
-  moveGame = createMoveGame(simpleBoard, rounds, log)
+  moveGame = createMoveGame(simpleBoard, rounds, tracker)
   moveGame.playGame()
 
   out_file = open("./output.json", "w")
   
-  data = log.getSerialized()
+  data = tracker.getSerialized()
   
   json.dump(data, out_file)
   

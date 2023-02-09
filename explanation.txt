@@ -54,3 +54,5 @@ So here's where we are currently at.
 Don't keep track of anything other than actions, after perform and when added. When an action is performed, it's immediately removed.
 Tracker will only log the details of the actions
 Reason for this is that game only changes based upon actions
+
+On add has tracker, 
