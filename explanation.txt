@@ -56,3 +56,19 @@ Tracker will only log the details of the actions
 Reason for this is that game only changes based upon actions
 
 On add has tracker, 
+
+
+
+So new iteration, what are we going to change?
+
+Well, we want to have all of our data stored in a json file
+Whenever a change is made, we create a new object, or if a list/object, we mutate it.
+
+Key could be a combination of the value, and the type, type and name, default name is value
+That way, we don't have to worry about items switching places
+
+Need a system that will allow for tracking of access points. 
+So each item can have an value of uses, if ever drops to zero, remove it
+
+Can just give item to be added, type as type, value as value
+Can have the indexables, and the non indexables. hashables have values hashed
