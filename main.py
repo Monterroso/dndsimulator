@@ -1,3 +1,3 @@
-import tests.movementTest
+import tests.SimpleNameTest
 
-tests.movementTest.movementTest()
+tests.SimpleNameTest.nameTest()

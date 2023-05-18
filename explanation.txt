@@ -72,3 +72,22 @@ So each item can have an value of uses, if ever drops to zero, remove it
 
 Can just give item to be added, type as type, value as value
 Can have the indexables, and the non indexables. hashables have values hashed
+
+The way we want to 
+
+So we have the backend system designed for... something
+
+Lets start with something *very* simple
+
+So you have a Game, a game has a board, and a board has units
+
+Game itself all it does is it takes a backend, and runs it
+
+#Hash gamestate to see if anything changes
+
+#Maybe I need to enable a type, maybe a hash?
+#Like if there's a unique id, along with a type
+#That way, things can have different types 
+
+#What is the problem that could happen? What if we have tiles, and we need to change an aspect of all the tiles.
+#Well, we would first need to clone it. 
