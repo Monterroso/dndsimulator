@@ -2,17 +2,20 @@ import dndSimulator.jsonBackend.factories.GameFactory as GameFactory
 
 from dndSimulator.jsonBackend.Backend import Backend
 
-from dndSimulator.RunGame import basicActionGame
+from dndSimulator.GameHandler import runUntilBlocked, ActionHandler
+
+from dndSimulator.jsonBackend.factories.ActionFactory import ActionMovementFactory
+
 
 import json
 
-def nameTest():
+def basicTest():
   backend = Backend()
   
   actorDatas = [
     ["actor1", "speed1", "basicMovementAI"],
     ["actor2", "speed2", "basicMovementAI"],
-    ["actor3", "speed3", "basicMovementAI"],
+    ["actor3", "speed3", "player"],
   ]
   
   actors = []
@@ -33,17 +36,47 @@ def nameTest():
     actorTypes.append({"name": name, "move": speed})
       
   board = {"dims": (5, 5,)}
+  
+  handler = ActionHandler()
 
   GameFactory.createGame(actors, actorTypes, board, backend)
 
-  print(basicActionGame(backend))
-  print(basicActionGame(backend))
-  print(basicActionGame(backend))
-  print(basicActionGame(backend))
-  print(basicActionGame(backend))
-  print(basicActionGame(backend))
+  print(runUntilBlocked(handler, backend))
+  actionIndex = ActionMovementFactory([0,0], [2, 2], backend)
+  actionObj = backend.getObj([], actionIndex)
+  handler.setAction(actionObj)
+  print(runUntilBlocked(handler, backend))
+  actionIndex = ActionMovementFactory([2,2], [5,5], backend)
+  actionObj = backend.getObj([], actionIndex)
+  handler.setAction(actionObj)
+  print(runUntilBlocked(handler, backend))
+  actionIndex = ActionMovementFactory([2,2], [5,5], backend)
+  actionObj = backend.getObj([], actionIndex)
+  handler.setAction(actionObj)
+  print(runUntilBlocked(handler, backend))
+  actionIndex = ActionMovementFactory([2,2], [5,2], backend)
+  actionObj = backend.getObj([], actionIndex)
+  handler.setAction(actionObj)
+  print(runUntilBlocked(handler, backend))
+  actionIndex = ActionMovementFactory([5,2], [5,2], backend)
+  actionObj = backend.getObj([], actionIndex)
+  handler.setAction(actionObj)
+  print(runUntilBlocked(handler, backend))
+  actionIndex = ActionMovementFactory([5,2], [8,2], backend)
+  actionObj = backend.getObj([], actionIndex)
+  handler.setAction(actionObj)
+  print(runUntilBlocked(handler, backend))
+  actionIndex = ActionMovementFactory([8,2], [18,2], backend)
+  actionObj = backend.getObj([], actionIndex)
+  handler.setAction(actionObj)
+  print(runUntilBlocked(handler, backend))
   
+  print(backend.serialize())
+  a = json.dumps(backend.serialize())
   
+  # f = open("output.json", "w+")
+  # f.write(a)
+  # f.close()
   
 def temp():
   

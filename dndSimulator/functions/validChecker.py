@@ -7,6 +7,8 @@ def isValid(actionIndex, actorIndex, backend):
   costIndex = getCost(actionIndex, actorIndex, backend)
 
   costObj = backend.getFromWorkingIndex(costIndex)
+  
+  isEmpty = True
 
   for costType in costObj:
     if costType not in availableActions:
@@ -15,11 +17,14 @@ def isValid(actionIndex, actorIndex, backend):
     availableAmount = backend.getObj([costType], availableActionsIndex)
     neededAmount = backend.getObj([costType], costIndex)
     
+    if neededAmount > 0:
+      isEmpty = False
+    
     diff = availableAmount - neededAmount
     
     if diff < 0:
       return False
     
-  return True
+  return not isEmpty
     
     

@@ -21,5 +21,4 @@ def perform(backend):
   #Removes the action from the list
   backend.setObj(["actionStack"], newActionStack)
   
-  #Sets change block
   backend.endChangeBlock()

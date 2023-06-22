@@ -1,3 +1,3 @@
-import tests.SimpleNameTest
+import tests.BasicPlayerTest
 
-tests.SimpleNameTest.nameTest()
+tests.BasicPlayerTest.basicTest()

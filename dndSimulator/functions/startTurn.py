@@ -4,7 +4,4 @@ def startTurn(actorIndex, backend):
   
   backend.setObj(["availableActions"], baseStats, actorIndex)
   
-  #Set change block
-  backend.endChangeBlock()
-  
-  
+  backend.setObj(["isTurn"], True, actorIndex)

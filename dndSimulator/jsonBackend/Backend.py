@@ -1,81 +1,229 @@
-class Backend:
-  def __init__(self):
-    self.changes = [[]]
-    #Object with working index as key, and true index as value
-    self.lookup = {}
-    #List with true index slot with working index
-    self.lookupReverse = []
-    #List of objects in their true index
-    self.objects = []
+class Index:
+  def __init__(self, index):
+    self.index = index
+  
+  def __repr__(self) -> str:
+    return f"{self.index},,"
+  
+  def __hash__(self) -> int:
+    return self.index
+  
+  def __eq__(self, __value: object) -> bool:
+    return type(__value) == Index and self.index == __value.index
+  
+  def toJSON(self):
+    return self.index
+  
+#removeObject: workingIndex, trueIndex, object
+#addObject: workingIndex
+#updateObject: workingIndex, prevIndex, object
+#changeParam: workingIndex, paramKey, oldValue, newValue
+#addParam: workingIndex, paramKey
+#removeParam: workingIndex, paramKey, previousValue
     
+class Backend:
+  def __init__(self, changes=None, lookupReverse=None, objects=None):
+    #List of changes
+    self.changes = []
+    
+    if changes == None:
+      self.changes.append([])
+    else:
+      for changeBlock in changes:
+        self.changes.append([])
+        for change in changeBlock:
+          self.changes[-1].append(self.convertChange(change, Index, self.fixObject))
+    
+    #Object with working index as key, and true index as value
+    self.lookup = {} 
+    
+    if lookupReverse != None:
+      for index, value in enumerate(lookupReverse):
+        self.lookup[Index(index)] = Index(value)
+    
+    
+    #List with true index slot with working index
+    self.lookupReverse = [] 
+    
+    if lookupReverse != None:
+      for index in lookupReverse:
+        self.lookupReverse.append(Index(index))
+        
+    #List of objects in their true index
+    self.objects = [] 
+    
+    if objects != None:
+      for obj in objects:
+        self.objects.append({})
+        for key, value in obj.items():
+          self.objects[-1][Index(key)] = Index(value)
+          
+    #To hold incompleted objects that should not be indexable until completed
     self.uncompleted = set()
   
   def isPrimitive(self, obj):
-    return "value" in obj and len(obj) == 1
+    return type(obj) == bool or type(obj) == int or type(obj) == float or type(obj) == str or type(obj) == type(None)
   
-  def isList(self, obj):
-    return self.isPrimitive(obj) and type(obj["value"]) == tuple
+  def isObj(self, obj):
+    #Check if is a dictionary
+    if type(obj) != dict:
+      return False
+    
+    return self.objectIndexChecker(obj)
+
+  def isTup(self, obj):
+    #Check if tuple
+    if type(obj) != tuple:
+      return False
+    
+    #Ensure all elements are proper indexes
+    return self.arrayIndexChecker(obj)
   
-  def getIndex(self, chain, startingIndex=0):
+  def isValidObj(self, obj):
+    return self.isPrimitive(obj) or self.isObj(obj) or self.isTup(obj)
+  
+  def isValidIndex(self, val):
+    """Returns true if the value is a valid Index, value otherwise
+
+    Args:
+        val (any): Value to check if Index
+
+    Returns:
+        bool: Whether the input val is an Index
+    """
+    
+    if type(val) != Index:
+      return False
+    
+    return val in self.lookup
+  
+  def arrayIndexChecker(self, arr):
+    for val in arr:
+      if not self.isValidIndex(val):
+        return False
+
+    return True
+  
+  def objectIndexChecker(self, obj):
+    for key, value in obj.items():
+      if not self.isValidIndex(key) or not self.isValidIndex(value):
+        return False
+    
+    return True
+  
+  def getWorkingIndexFromChain(self, chain, startingIndex):
     workingIndex = startingIndex
     
     for key in chain:
-      workingIndex = self.getFromWorkingIndex(workingIndex)[key]
+      chainIndex = self.addCompleteObject(key) if not self.isValidIndex(key) else key
+      workingIndex = self.getFromWorkingIndex(workingIndex)[chainIndex]
       
     return workingIndex
   
-  def getObj(self, chain, startingIndex=0):
+  def getIndex(self, chain, startingIndex=Index(0)):
+    if not self.isValidIndex(startingIndex):
+      raise TypeError(f"The value must not be an index, not a {type(startingIndex)}")
+      
+    return self.getWorkingIndexFromChain(chain, startingIndex)
+  
+  def getObj(self, chain, startingIndex=Index(0)):
     workingIndex = self.getIndex(chain, startingIndex)
     
     obj = self.getFromWorkingIndex(workingIndex)
     
     if self.isPrimitive(obj):
-      return obj["value"]
+      return obj
     
-    return obj
+    if type(obj) == tuple:
+      return (*obj,)
+
+    return {**obj}
   
-  def setIndex(self, chain, setIndex, startingIndex=0):
-    workingIndex = startingIndex
+  def setIndex(self, chain, setIndex, startingIndex=Index(0)):
+
+    # if not self.arrayIndexChecker(chain):
+    #   raise TypeError(f"An element in the array provided is not an index, the types given are {[type(el) for el in chain]}")
+    if not self.isValidIndex(startingIndex):
+      raise TypeError(f"The value must not be an index, not a {type(startingIndex)}")
+    if not self.isValidIndex(setIndex):
+      raise TypeError(f"The value must not be an index, not a {type(setIndex)}")
     
-    for key in chain[:-1]:
-      workingIndex = self.getFromWorkingIndex(workingIndex)[key]
+    parentIndex = self.getWorkingIndexFromChain(chain[:-1], startingIndex)
+    nextIndex = self.addCompleteObject(chain[-1])
     
-    if chain[-1] not in self.getFromWorkingIndex(workingIndex):
-      self.getFromWorkingIndex(workingIndex)[chain[-1]] = setIndex
-      self.addChange(("addParam", workingIndex, chain[-1], setIndex))
+    if nextIndex not in self.getFromWorkingIndex(parentIndex):
+      self.getFromWorkingIndex(parentIndex)[nextIndex] = setIndex
+      self.addChange(("addParam", nextIndex, nextIndex, setIndex))
     else:
-      prevIndex = self.getFromWorkingIndex(workingIndex)[chain[-1]]
-      self.getFromWorkingIndex(workingIndex)[chain[-1]] = setIndex
-      self.addChange(("changeParam", workingIndex, chain[-1], prevIndex, setIndex))
+      prevIndex = self.getFromWorkingIndex(parentIndex)[nextIndex]
+      self.getFromWorkingIndex(parentIndex)[nextIndex] = setIndex
+      self.addChange(("changeParam", parentIndex, nextIndex, prevIndex, setIndex))
   
-  def setObj(self, chain, obj, startingIndex=0):
+  def setObj(self, chain, obj, startingIndex=Index(0)):    
     setIndex = self.addCompleteObject(obj)
     
     return self.setIndex(chain, setIndex, startingIndex)
   
-  def remove(self, chain, startingIndex=0):
-    workingIndex = startingIndex
+  def removeObjectIndex(self, chain, startingIndex=Index(0)):
     
-    for key in chain[:-1]:
-      workingIndex = self.getFromWorkingIndex(workingIndex)[key]
+    # if not self.arrayIndexChecker(chain):
+    #   raise TypeError(f"An element in the array provided is not an index, the types given are {[type(el) for el in chain]}")
+    if not self.isValidIndex(startingIndex):
+      raise TypeError(f"The value must not be an index, not a {type(startingIndex)}")
+    
+    workingIndex = self.getWorkingIndexFromChain(chain[:-1], startingIndex)
       
-    prevIndex = self.getFromWorkingIndex(workingIndex)[chain[-1]]
+    nextIndex = self.addCompleteObject(chain[-1])
+    nextIndexValue = self.getFromWorkingIndex(workingIndex)[nextIndex]
     
-    del self.getFromWorkingIndex(workingIndex)[chain[-1]]
-    self.addChange(("removeParam", workingIndex, chain[-1], prevIndex))
+    del self.getFromWorkingIndex(workingIndex)[nextIndex]
+    self.addChange(("removeParam", workingIndex, nextIndex, nextIndexValue))
   
   def getWorkingIndexFromObj(self, obj):
+    """Given an object, gets the index within the backend, or -1 if not present
+
+    Args:
+        obj (any): object to be compared within backend, check if present
+
+    Raises:
+        Exception: If an object given is not of the appropriate type
+
+    Returns:
+        Index: Index of object, or -1 if not found
+    """
+    
+    newObj = self.translateObject(obj)
+    
+    if not self.isValidObj(newObj):
+      raise Exception("Object to set is not of the appropriate type")
+    
     for trueIndex, testObj in enumerate(self.objects):
       workingIndex = self.lookupReverse[trueIndex]
-      if len(obj.keys()) == len(testObj.keys()) and workingIndex not in self.uncompleted:
-        isCandidate = True
-        for key, value in obj.items():
-          if key not in testObj or testObj[key] != value:
-            isCandidate = False
-            break
-        
-        if isCandidate:
-          return workingIndex
+      
+      if type(testObj) == type(newObj):
+        if self.isObj(testObj):
+          if len(newObj.keys()) == len(testObj.keys()) and workingIndex not in self.uncompleted:
+            isCandidate = True
+            for key, value in newObj.items():
+              if key not in testObj or testObj[key] != value:
+                isCandidate = False
+                break
+            
+            if isCandidate:
+              return workingIndex
+        elif self.isTup(testObj):
+          if len(newObj) == len(testObj):
+            isCandidate = True
+            for i, _ in enumerate(newObj):
+              if newObj[i] != testObj[i]:
+                isCandidate = False
+                break
+                
+            if isCandidate:
+              return workingIndex
+        else:
+          if newObj == testObj:
+            return workingIndex
         
     return -1
   
@@ -84,13 +232,25 @@ class Backend:
   
   def getNextWorkingIndex(self):
     workingIndex = 0
-    while workingIndex in self.lookup:
+    while Index(workingIndex) in self.lookup:
       workingIndex += 1
       
-    return workingIndex
+    return Index(workingIndex)
   
   
   def getFromWorkingIndex(self, workingIndex):
+    """Gets the true stored object at given working index
+
+    Args:
+        workingIndex (Index): working index to be used to get
+
+    Returns:
+        object: returns the actual object if object or tuple
+    """
+    
+    if not self.isValidIndex(workingIndex):
+      raise TypeError(f"The value must not be an index, not a {type(workingIndex)}")
+    
     trueIndex = self.lookup[workingIndex]
     
     return self.objects[trueIndex]
@@ -109,20 +269,15 @@ class Backend:
     obj = self.getFromWorkingIndex(workingIndex)
     
     
-    if self.isList(obj):
-      return [val for val in obj["value"]]
+    if self.isTup(obj):
+      return [*obj,]
     
     if self.isPrimitive(obj):
       return []
+    
+    return [val for val in obj.values()] + [key for key in obj.keys()]
       
-    res = []
-    #otherwise it's an object
-    for _, value in obj.items():
-      res.append(value)
-        
-    return res
-      
-  def getObjectsReferenced(self, workingIndex=0, alreadySearched=None):
+  def getObjectsReferenced(self, workingIndex=Index(0)):
     """Generates a set of all workingIndexes that can be accessed from zero index, gets all descendents, and itself
 
     Args:
@@ -132,16 +287,20 @@ class Backend:
     Returns:
         set: set containing all objects referencable from workingIndex
     """
-    if alreadySearched == None:
-      alreadySearched = set()
-
-    alreadySearched.add(workingIndex)
     
-    childIndexes = self.getChildIndexes(workingIndex)
+    if not self.isValidIndex(workingIndex):
+      raise TypeError(f"The value must not be an index, not a {type(workingIndex)}")
     
-    for childIndex in childIndexes:
+    alreadySearched = set()
+    
+    childIndexes = [workingIndex]
+    
+    while len(childIndexes) != 0:
+      childIndex = childIndexes.pop()
+      
       if childIndex not in alreadySearched:
-        self.getObjectsReferenced(childIndex, alreadySearched)
+        alreadySearched.add(childIndex)
+        childIndexes += self.getChildIndexes(childIndex)
         
     return alreadySearched
         
@@ -152,7 +311,7 @@ class Backend:
     #Gets all the items that are accessible
     accessableItems = self.getObjectsReferenced()
     
-    lookups = [*self.lookup.keys()]
+    lookups = [key for key in self.lookup.keys()]
     
     for workingIndex in lookups:
       trueIndex = self.lookup[workingIndex]
@@ -160,7 +319,7 @@ class Backend:
       if workingIndex not in accessableItems:
         
         #Adds the object info for undo, the working and true index, and the object itself shall be stored
-        self.addChange(("removeObject", workingIndex, trueIndex, {**self.objects[trueIndex]}))
+        self.addChange(("removeObject", workingIndex, trueIndex, self.getObj([], workingIndex)))
         
         #Adjusts the true index
         indexesNeedingShift = self.lookupReverse[trueIndex + 1:]
@@ -183,41 +342,35 @@ class Backend:
       
     #Make new block to being changed
     self.changes.append([])
-    
-  def makePrimitive(self, value):
-    return {"value": value}
       
   #Adds generated object, cannot be used for self references, used to check if already in object
   def addCompleteObject(self, obj):
     """Creates new index if not found, or existing if found. Use in all cases if adding without self reference
 
     Args:
-        obj (dict): Either created object with keys, or object to be converted to a primitive
+        obj (Any): Object to be added, creates a copy to be used
 
     Returns:
-        int: working index of added object
+        Index: working index of added object
     """
     
-    #Check if obj is not a dict, and handle
-    if type(obj) != dict:
-      obj = self.makePrimitive(obj)
+    newObj = self.translateObject(obj)
     
-    if not self.isPrimitive(obj):
-      for _, value in obj.items():
-        if type(value) != int:
-          raise Exception("An improper object attempting to be added")
+    if not self.isValidObj(newObj):
+      raise TypeError(f"Object to add is not a proper object {newObj}")
     
-    newObj = {**obj}
-    
-    for key, value in newObj.items():
-      if type(value) == list:
-        newObj[key] = tuple(value)
-    
-    #Gets the hash of the object
+    #Gets the Index of the object
     workingIndex = self.getWorkingIndexFromObj(newObj)
     
+    #If already added, return working Index
     if workingIndex != -1:
       return workingIndex
+    
+    if self.isTup(newObj):
+      newObj = (*newObj,)
+    
+    if self.isObj(newObj):
+      newObj = {**newObj,}
     
     
     #Now we get the reference index, which is the lowest number available
@@ -233,7 +386,7 @@ class Backend:
     self.lookupReverse.append(workingIndex)
     
     #Handle undo
-    self.addChange(("addObject", workingIndex, {**self.getFromWorkingIndex(workingIndex)}))
+    self.addChange(("addObject", workingIndex, self.getObj([], workingIndex)))
     
     return workingIndex
     
@@ -280,14 +433,14 @@ class Backend:
     
     prev = {**self.getFromWorkingIndex(workingIndex)}
 
-    for key, value in params.items():
+    for key, value in self.translateObject(params).items():
       self.getFromWorkingIndex(workingIndex)[key] = value
       
     #Sets index to no long be a wip, and thus indexable
     self.uncompleted.remove(workingIndex)
       
     #handle undo
-    self.addChange(("updateObject", workingIndex, prev, {**self.getFromWorkingIndex(workingIndex)}))
+    self.addChange(("updateObject", workingIndex, prev, self.getObj([], workingIndex)))
     
   def undo(self):
     def removeObj(workingIndex):
@@ -332,42 +485,144 @@ class Backend:
       
     self.changes.pop()
     
-def createPrimitive(val):
-  if type(val) == list:
-    return {"value": tuple(val)}
+  def serializeObject(self, obj):
+    if type(obj) == dict:
+      return {key.toJSON(): val.toJSON() for key, val in obj.items()}
+    
+    if type(obj) == list:
+      return (val.toJSON for val in obj)
+    
+    if type(obj) == Index:
+      a = 1
+
+    return obj
   
-  return {"value": val}   
-
-class Index:
-  def __init__(self, index):
-    self.index = index
-
-if __name__ == "__main__":
-
-  backend = Backend()
-
-  first = backend.createEmpty()
-
-  #Got the index of the first, now create the others
-  a = backend.addCompleteObject({"value": 1})
-  b = backend.addCompleteObject({"value": 2})
-  backend.addCompleteObject({"a": a, "b": b})
-  ab = backend.addCompleteObject({"a": a, "b": b})
-
-  backend.completeEmpty(first, {"a": a, "b": b, "ab": ab, "H": first})
-
-  backend.setObj(["H"], {"value": 2})
-
-  backend.endChangeBlock()
-
-  d = backend.addCompleteObject({"value": 4})
-  c = backend.addCompleteObject({"value": 3})
-
-  backend.setObj(["ab", "a"], {"value": 3})
+  def fixObject(self, obj):
+    if type(obj) == dict:
+      return {Index(key): Index(val) for key, val in obj.items()}
+    
+    if type(obj) == list:
+      return (Index(val) for val in obj)
+    
+    if type(obj) == Index:
+      a = 1
+    
+    return obj
   
-  backend.endChangeBlock()
-
-  e = backend.addCompleteObject({"value": 5})
-  f = backend.addCompleteObject({"value": 6})
+  def translateObject(self, obj):
+    if type(obj) == dict:
+      newObj = {}
+      
+      for key, value in obj.items():
+        newKey = key
+        newValue = value
+        
+        if not self.isValidIndex(key):
+          newKey = self.addCompleteObject(key)
+        if not self.isValidIndex(value):
+          newValue = self.addCompleteObject(value)
+          
+        newObj[newKey] = newValue
+          
+      return newObj
+    
+    if type(obj) == list or type(obj) == tuple:
+      newObj = []
+      
+      for value in obj:
+        if not self.isValidIndex(value):
+          newObj.append(self.addCompleteObject(value))
+        else:
+          newObj.append(value)
+          
+      return tuple(newObj)
+    
+    return obj
+       
+  def convertChange(self, changeData, IndexClass, fixObjFunction):
+    
+    op, workingIndex = changeData[:2]
+    
+    newData = [op, IndexClass(workingIndex)]
+    
+    if op == "removeObject":
+      trueIndex, obj = changeData[2:]
+      
+      newData.append(trueIndex)
+      newData.append(fixObjFunction(obj))
+    elif op == "updateObject":
+      prevObj, obj = changeData[2:]
+      
+      newData.append(fixObjFunction(prevObj))
+      newData.append(fixObjFunction(obj))
+    elif op == "changeParam":
+      paramKey, oldValue, newValue = changeData[2:]
+      
+      newData.append(IndexClass(paramKey))
+      newData.append(IndexClass(oldValue))
+      newData.append(IndexClass(newValue)) 
+    elif op == "addParam":
+      paramKey = changeData[2]
+      
+      newData.append(IndexClass(paramKey))
+    elif op == "removeParam":
+      paramKey, prevValue = changeData[2:]
+      
+      newData.append(IndexClass(paramKey))
+      newData.append(IndexClass(prevValue))
+      
+    return tuple(newData)
+    
+  def writeObject(self, index=Index(0), completedSet=None):
+    if type(index) != Index:
+      index = Index(index)
+      
+    if completedSet == None:
+      completedSet = {}
+      
+    if index in completedSet:
+      return completedSet[index]
+    
+    trueIndex = self.lookup[index]
+    
+    if self.isPrimitive(self.objects[trueIndex]):
+      return self.objects[trueIndex]
+    
+    if self.isTup(self.objects[trueIndex]):
+      completedSet[index] = []
+      
+      for i in self.objects[trueIndex]:
+        completedSet[index].append(self.writeObject(i, completedSet))  
+    else:
+      completedSet[index] = {}
+      
+      for key, value in self.objects[trueIndex].items():
+        completedSet[index][key] = self.writeObject(value, completedSet)
+      
+    return completedSet[index]
   
-  backend.endChangeBlock()
+  def indexFixer(index):
+    if type(index) == Index:
+      return index.toJSON()
+    
+    return index
+  
+  def serialize(self):
+    retObj = {
+      "changes": [],
+      "lookupReverse": [],
+      "objects": [],
+    }
+    
+    for changeBlock in self.changes:
+      retObj["changes"].append([])
+      for change in changeBlock:
+        retObj["changes"][-1].append(self.convertChange(change, lambda x: x.toJSON(), self.serializeObject))
+        
+    for index in self.lookupReverse:    
+      retObj["lookupReverse"].append(index.toJSON())
+      
+    for obj in self.objects:
+      retObj["objects"].append(self.serializeObject(obj))
+      
+    return retObj

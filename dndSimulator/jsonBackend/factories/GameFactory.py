@@ -1,4 +1,4 @@
-from . import ActorFactory, BoardFactory, StatsFactory
+from . import ActorFactory, BoardFactory, StatsFactory, TupleFactory
 
 def createGame(actors, stats, board, backend):
   gameIndex = backend.createEmpty()
@@ -20,7 +20,7 @@ def createGame(actors, stats, board, backend):
   
   actorPosObj = {}
   for actorIndex in actorsList:
-    actorPosObj[actorIndex] = backend.addCompleteObject((0,0,))
+    actorPosObj[actorIndex] = backend.addCompleteObject(TupleFactory.createTuple((0,0,), backend))
     
   actorPosObjIndex = backend.addCompleteObject(actorPosObj)
   
