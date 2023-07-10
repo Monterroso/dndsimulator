@@ -1,30 +1,41 @@
-class Index:
-  def __init__(self, index):
-    self.index = index
-  
-  def __repr__(self) -> str:
-    return f"{self.index},,"
-  
-  def __hash__(self) -> int:
-    return self.index
-  
-  def __eq__(self, __value: object) -> bool:
-    return type(__value) == Index and self.index == __value.index
-  
-  def toJSON(self):
-    return self.index
-  
-#removeObject: workingIndex, trueIndex, object
-#addObject: workingIndex
-#updateObject: workingIndex, prevIndex, object
-#changeParam: workingIndex, paramKey, oldValue, newValue
-#addParam: workingIndex, paramKey
-#removeParam: workingIndex, paramKey, previousValue
+class Engine:
+  class Index:
+    def __init__(self, index):
+      self.index = int(index)
     
-class Backend:
-  def __init__(self, changes=None, lookupReverse=None, objects=None):
+    def __repr__(self) -> str:
+      return f"{self.index},,"
+    
+    def __hash__(self) -> int:
+      return self.index
+    
+    def __eq__(self, __value: object) -> bool:
+      return type(__value) == Engine.Index and self.index == __value.index
+    
+    def toJSON(self):
+      return self.index
+
+  def __init__(self, data=None):
     #List of changes
     self.changes = []
+
+    if type(data) != dict and data != None:
+      raise Exception("Data object does not have correct type")
+
+    changes = None
+    lookupReverse = None
+    objects = None
+
+    if data != None:
+      for key, value in data.items():
+        if key == "changes":
+          changes = data["changes"]
+        elif key == "lookupReverse":
+          lookupReverse = data["lookupReverse"]
+        elif key == "objects":
+          objects = data["objects"]
+        else:
+          raise Exception("Data object has unexpected")
     
     if changes == None:
       self.changes.append([])
@@ -32,14 +43,14 @@ class Backend:
       for changeBlock in changes:
         self.changes.append([])
         for change in changeBlock:
-          self.changes[-1].append(self.convertChange(change, Index, self.fixObject))
+          self.changes[-1].append(self.convertChange(change, Engine.Index, self.fixObject))
     
     #Object with working index as key, and true index as value
     self.lookup = {} 
     
     if lookupReverse != None:
       for index, value in enumerate(lookupReverse):
-        self.lookup[Index(index)] = Index(value)
+        self.lookup[Engine.Index(value)] = index
     
     
     #List with true index slot with working index
@@ -47,16 +58,22 @@ class Backend:
     
     if lookupReverse != None:
       for index in lookupReverse:
-        self.lookupReverse.append(Index(index))
+        self.lookupReverse.append(Engine.Index(index))
         
     #List of objects in their true index
     self.objects = [] 
     
     if objects != None:
       for obj in objects:
-        self.objects.append({})
-        for key, value in obj.items():
-          self.objects[-1][Index(key)] = Index(value)
+        if type(obj) == dict:
+          self.objects.append({})
+          for key, value in obj.items():
+            self.objects[-1][Engine.Index(key)] = Engine.Index(value)
+        elif type(obj) == tuple or type(obj) == list:
+          self.objects.append(tuple(Engine.Index(value) for value in obj))
+        else:
+          self.objects.append(obj)
+        
           
     #To hold incompleted objects that should not be indexable until completed
     self.uncompleted = set()
@@ -92,7 +109,7 @@ class Backend:
         bool: Whether the input val is an Index
     """
     
-    if type(val) != Index:
+    if type(val) != Engine.Index:
       return False
     
     return val in self.lookup
@@ -232,10 +249,10 @@ class Backend:
   
   def getNextWorkingIndex(self):
     workingIndex = 0
-    while Index(workingIndex) in self.lookup:
+    while Engine.Index(workingIndex) in self.lookup:
       workingIndex += 1
       
-    return Index(workingIndex)
+    return Engine.Index(workingIndex)
   
   
   def getFromWorkingIndex(self, workingIndex):
@@ -489,23 +506,23 @@ class Backend:
     if type(obj) == dict:
       return {key.toJSON(): val.toJSON() for key, val in obj.items()}
     
-    if type(obj) == list:
-      return (val.toJSON for val in obj)
+    if type(obj) == tuple:
+      return tuple(val.toJSON() for val in obj)
     
-    if type(obj) == Index:
-      a = 1
+    if type(obj) == Engine.Index or type(obj) == list:
+      raise Exception("Invalid object found to be serialized")
 
     return obj
   
   def fixObject(self, obj):
     if type(obj) == dict:
-      return {Index(key): Index(val) for key, val in obj.items()}
+      return {Engine.Index(key): Engine.Index(val) for key, val in obj.items()}
     
     if type(obj) == list:
-      return (Index(val) for val in obj)
+      return tuple(Engine.Index(val) for val in obj)
     
-    if type(obj) == Index:
-      a = 1
+    if type(obj) == Engine.Index:
+      raise Exception("An object must not be an index")
     
     return obj
   
@@ -545,7 +562,11 @@ class Backend:
     
     newData = [op, IndexClass(workingIndex)]
     
-    if op == "removeObject":
+    if op == "addObject":
+      obj = changeData[2]
+
+      newData.append(fixObjFunction(obj))
+    elif op == "removeObject":
       trueIndex, obj = changeData[2:]
       
       newData.append(trueIndex)
@@ -562,9 +583,10 @@ class Backend:
       newData.append(IndexClass(oldValue))
       newData.append(IndexClass(newValue)) 
     elif op == "addParam":
-      paramKey = changeData[2]
+      paramKey, newValue = changeData[2:]
       
       newData.append(IndexClass(paramKey))
+      newData.append(IndexClass(newValue))
     elif op == "removeParam":
       paramKey, prevValue = changeData[2:]
       
@@ -574,35 +596,39 @@ class Backend:
     return tuple(newData)
     
   def writeObject(self, index=Index(0), completedSet=None):
-    if type(index) != Index:
-      index = Index(index)
+    if type(index) != Engine.Index:
+      index = Engine.Index(index)
       
     if completedSet == None:
       completedSet = {}
       
     if index in completedSet:
       return completedSet[index]
+
+    obj = self.getFromWorkingIndex(index)
     
-    trueIndex = self.lookup[index]
-    
-    if self.isPrimitive(self.objects[trueIndex]):
-      return self.objects[trueIndex]
-    
-    if self.isTup(self.objects[trueIndex]):
+    if self.isPrimitive(obj):
+      return obj
+
+
+
+    if self.isTup(obj):
       completedSet[index] = []
       
-      for i in self.objects[trueIndex]:
+      for i in obj:
         completedSet[index].append(self.writeObject(i, completedSet))  
     else:
       completedSet[index] = {}
       
-      for key, value in self.objects[trueIndex].items():
-        completedSet[index][key] = self.writeObject(value, completedSet)
+      for key, value in obj.items():
+        keyIndex = self.getFromWorkingIndex(key) if self.isPrimitive(self.getFromWorkingIndex(key)) else key
+        
+        completedSet[index][keyIndex] = self.writeObject(value, completedSet)
       
     return completedSet[index]
   
   def indexFixer(index):
-    if type(index) == Index:
+    if type(index) == Engine.Index:
       return index.toJSON()
     
     return index

@@ -4,4 +4,4 @@ def startTurn(actorIndex, backend):
   
   backend.setObj(["availableActions"], baseStats, actorIndex)
   
-  backend.setObj(["isTurn"], True, actorIndex)
+  backend.setObj(["turnStarted"], True)

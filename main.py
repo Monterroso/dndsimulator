@@ -1,3 +1,4 @@
-import tests.BasicPlayerTest
+from tests import MovementContinueTest, BasicPlayerTest
 
-tests.BasicPlayerTest.basicTest()
+# MovementContinueTest.basicTest()
+BasicPlayerTest.basicTest()

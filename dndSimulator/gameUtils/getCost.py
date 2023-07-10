@@ -6,7 +6,7 @@ def getCost(actionIndex, actorIndex, backend):
   cost = {}
   
   if actionType == "move":
-    startingPos = backend.getObj(["startingPos"], actionIndex)
+    startingPos = backend.getObj(["actorPos", actorIndex])
     endingPos = backend.getObj(["endingPos"], actionIndex)
     
     moveAmount = getDistance(decompactTupe(startingPos, backend), decompactTupe(endingPos, backend))
@@ -16,5 +16,3 @@ def getCost(actionIndex, actorIndex, backend):
     
   
   return backend.addCompleteObject(cost)
-    
-    

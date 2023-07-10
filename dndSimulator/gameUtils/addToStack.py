@@ -32,6 +32,5 @@ def addToStack(actionIndex, actorIndex, backend):
   
   #Updates the action stack to include the new action
   backend.setObj(["actionStack"], tuple(newActionStack))
-  
-  #Actor no longer has an action to give
-  backend.setObj(["action"], None, actorIndex)
+
+  backend.endChangeBlock()

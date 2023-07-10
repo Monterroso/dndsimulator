@@ -32,7 +32,9 @@ def createGame(actors, stats, board, backend):
     "currentTurn": backend.addCompleteObject(0),
     "board": boardIndex,
     "actorPos": actorPosObjIndex,
-    "actionStack": backend.addCompleteObject(tuple())
+    "actionStack": backend.addCompleteObject(tuple()),
+    "turnStarted": backend.addCompleteObject(False),
+    "proposedAction": backend.addCompleteObject(None)
   }
   
   backend.completeEmpty(gameIndex, params)

@@ -11,6 +11,4 @@ def createActor(id, baseStats, ai, backend):
     "baseStats": baseStatsIndex,
     "availableActions": baseStatsIndex,
     "ai": aiIndex,
-    "action": actionIndex,
-    "isTurn": isTurnIndex,
   })
