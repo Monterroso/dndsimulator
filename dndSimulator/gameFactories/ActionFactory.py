@@ -1,6 +1,6 @@
 from .TupleFactory import createTuple
 
-def ActionFactory(actionType, data, backend):
+def createAction(actionType, data, backend):
   actionTypeIndex = backend.addCompleteObject(actionType)
 
   if actionType == "none":

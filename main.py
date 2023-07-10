@@ -1,4 +1,4 @@
-from tests import MovementContinueTest, BasicPlayerTest
+from tests import BasicPlayerTest
 
 # MovementContinueTest.basicTest()
 BasicPlayerTest.basicTest()

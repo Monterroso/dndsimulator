@@ -7,7 +7,7 @@ def createGame(actors, stats, board, backend):
   for statsData in stats:
     speed = statsData["move"]
     name = statsData["name"]
-    statsDict[name] = StatsFactory.createStatsObject(speed, backend)
+    statsDict[name] = StatsFactory.createRawStats(speed, backend)
   
   actorsList = []
   for actor in actors:

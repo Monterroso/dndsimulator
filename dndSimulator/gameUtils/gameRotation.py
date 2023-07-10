@@ -1,12 +1,12 @@
-from dndSimulator.jsonBackend.factories.ActionFactory import ActionFactory
-from .functions.aiGetter import setAction
-from .functions.validChecker import isValid
-from .functions.perform import perform
-from .functions.addToStack import addToStack
-from .functions.startTurn import startTurn
-from .functions.endTurn import endTurn
+from dndSimulator.gameFactories import createAction
+from .aiGetter import setAction
+from .validChecker import isValid
+from .perform import perform
+from .addToStack import addToStack
+from .startTurn import startTurn
+from .endTurn import endTurn
 
-def runUntilBlocked(actionHandler, backend):
+def gameRotation(actionHandler, backend):
   """This function takes a backend json, and runs action cycle.\
     Actor gives an action, if valid performs. If invalid, increments turn counter
   
@@ -37,7 +37,7 @@ def runUntilBlocked(actionHandler, backend):
       if actionHandler.canSkip(actorId):
         return actorId
 
-      actionIndex = ActionFactory(*actionHandler.popAction(actorId), backend)
+      actionIndex = createAction(*actionHandler.popAction(actorId), backend)
       backend.setIndex(["proposedAction"], actionIndex)
 
       validAction = isValid(actionIndex, actorIndex, backend)

@@ -1,5 +1,3 @@
-from ..jsonBackend.factories.ActionFactory import ActionFactory
-from ..jsonBackend.factories.TupleFactory import createTuple
 from .utils import decompactTupe
 
 def basicMovementAI(actorIndex, actionHandler, backend):

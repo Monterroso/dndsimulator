@@ -1,7 +1,7 @@
-from .dndSimulator.Engine import Engine
-from .dndSimulator.gameFactories import GameFactory
-from .dndSimulator.gameUtils import gameRotation
-from .dndSimulator.ActionHandler import ActionHandler
+from dndSimulator.Engine import Engine
+from dndSimulator.gameFactories import createGame
+from dndSimulator.gameUtils import gameRotation
+from dndSimulator.ActionHandler import ActionHandler
 
 class SimpleMovementGame:
   def __init__(self, actorDatas, actorTypeDatas, board):
@@ -29,7 +29,7 @@ class SimpleMovementGame:
     
     self.handler = ActionHandler()
 
-    GameFactory.createGame(actors, actorTypes, board, self.backend)
+    createGame(actors, actorTypes, board, self.backend)
 
   def setAction(self, actorId, actionData):
     self.handler.setAction(actorId, actionData)

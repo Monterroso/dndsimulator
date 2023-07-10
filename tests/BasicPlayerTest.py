@@ -1,4 +1,4 @@
-from GameMaker import SimpleMovementGame
+from dndSimulator.GameMaker import SimpleMovementGame
 import json
 
 def basicTest():
