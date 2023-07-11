@@ -14,5 +14,5 @@ setup(
     license="MIT",
     packages=["dndSimulator"],
     python_requires="<=3.7",
-    install_requires=["json"],
+    install_requires=[],
 )
