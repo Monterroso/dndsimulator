@@ -13,6 +13,6 @@ setup(
     url="https://github.com/Monterroso/dndsimulator",
     license="MIT",
     packages=["dndSimulator"],
-    python_requires="<=3.7",
+    python_requires=">=3.7",
     install_requires=[],
 )
