@@ -20,16 +20,34 @@ def basicTest():
   
   actorId = game.run()
   game.setAction(actorId, ["move", [(2,2)]])
+  serializedGame = game.serialize()
+  newGame = SimpleMovementGame(data=serializedGame)
+  game = newGame
   actorId = game.run()
   game.setAction(actorId, ["move", [(5,5)]])
+  serializedGame = game.serialize()
+  newGame = SimpleMovementGame(data=serializedGame)
+  game = newGame
   actorId = game.run()
   game.setAction(actorId, ["move", [(5,2)]])
+  serializedGame = game.serialize()
+  newGame = SimpleMovementGame(data=serializedGame)
+  game = newGame
   actorId = game.run()
   game.setAction(actorId, ["move", [(4,2)]])
+  serializedGame = game.serialize()
+  newGame = SimpleMovementGame(data=serializedGame)
+  game = newGame
   actorId = game.run()
   game.setAction(actorId, ["move", [(1,2)]])
+  serializedGame = game.serialize()
+  newGame = SimpleMovementGame(data=serializedGame)
+  game = newGame
   actorId = game.run()
   game.setAction(actorId, ["move", [(3,4)]])
+  serializedGame = game.serialize()
+  newGame = SimpleMovementGame(data=serializedGame)
+  game = newGame
   actorId = game.run()
 
   a = json.dumps(game.serialize())

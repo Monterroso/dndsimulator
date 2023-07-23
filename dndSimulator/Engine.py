@@ -170,7 +170,7 @@ class Engine:
     
     if nextIndex not in self.getFromWorkingIndex(parentIndex):
       self.getFromWorkingIndex(parentIndex)[nextIndex] = setIndex
-      self.addChange(("addParam", nextIndex, nextIndex, setIndex))
+      self.addChange(("addParam", parentIndex, nextIndex, setIndex))
     else:
       prevIndex = self.getFromWorkingIndex(parentIndex)[nextIndex]
       self.getFromWorkingIndex(parentIndex)[nextIndex] = setIndex
@@ -518,7 +518,7 @@ class Engine:
     if type(obj) == dict:
       return {Engine.Index(key): Engine.Index(val) for key, val in obj.items()}
     
-    if type(obj) == list:
+    if type(obj) == list or type(obj) == tuple:
       return tuple(Engine.Index(val) for val in obj)
     
     if type(obj) == Engine.Index:
@@ -609,8 +609,6 @@ class Engine:
     
     if self.isPrimitive(obj):
       return obj
-
-
 
     if self.isTup(obj):
       completedSet[index] = []

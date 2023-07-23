@@ -1,7 +1,7 @@
 class ActionHandler:
-  def __init__(self):
-    self.actionDict = {}
-    self.hasHit = set()
+  def __init__(self, data=None):
+    self.actionDict = {**data[0]} if data != None else {}
+    self.hasHit = set(data[1]) if data != None else set()
     
   def popAction(self, actorId):
 
