@@ -1,4 +1,4 @@
-from dndSimulator.Engine import Engine
+from dndSimulator import Engine
 from dndSimulator.gameFactories import createGame
 from dndSimulator.gameUtils import gameRotation
 from dndSimulator.ActionHandler import ActionHandler
