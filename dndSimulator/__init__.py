@@ -1,0 +1,1 @@
+from GameMaker import SimpleMovementGame
