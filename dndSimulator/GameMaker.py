@@ -1,7 +1,7 @@
-from dndSimulator.Engine import Engine
-from dndSimulator.gameFactories import createGame
-from dndSimulator.gameUtils import gameRotation
-from dndSimulator.ActionHandler import ActionHandler
+from .Engine import Engine
+from .gameFactories import createGame
+from .gameUtils import gameRotation
+from .ActionHandler import ActionHandler
 
 class SimpleMovementGame:
   def __init__(self, actorDatas=None, actorTypeDatas=None, board=None, data=None):
