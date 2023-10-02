@@ -91,3 +91,14 @@ Game itself all it does is it takes a backend, and runs it
 
 #What is the problem that could happen? What if we have tiles, and we need to change an aspect of all the tiles.
 #Well, we would first need to clone it. 
+
+
+So, what else do we need
+We need to have the ability to have players to send moves
+
+So send change to frontend, the frontend can send action/player
+
+
+So what does it need? Well, here's what we want to send
+1) player action info to server
+2) length 

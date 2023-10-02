@@ -1,7 +1,8 @@
-from dndSimulator import Engine
+from dndSimulator.Engine import Engine
 from dndSimulator.gameFactories import createGame
-from dndSimulator.gameUtils import gameRotation
+from dndSimulator.gameUtils import gameRotation, getCurrentTurnId
 from dndSimulator.ActionHandler import ActionHandler
+from dndSimulator.gameUtils.utils import getHash
 
 class SimpleMovementGame:
   def __init__(self, actorDatas=None, actorTypeDatas=None, board=None, data=None):
@@ -13,6 +14,10 @@ class SimpleMovementGame:
         board (list): [dims (list<int>)]
         gameJson (dict): game in json form 
     """
+
+    actorDatas = actorDatas if actorDatas != None else []
+    actorTypeDatas = actorTypeDatas if actorTypeDatas != None else []
+    board = board if board != None else [(5,5,)]
 
     if data != None:
       gameData = data["backend"]
@@ -39,6 +44,9 @@ class SimpleMovementGame:
 
       createGame(actors, actorTypes, board, self.backend)
 
+  def getNextActor(self):
+    return getCurrentTurnId(self.backend)
+
   def setAction(self, actorId, actionData):
     self.handler.setAction(actorId, actionData)
 
@@ -50,3 +58,6 @@ class SimpleMovementGame:
       "handler": self.handler.serialize(),
       "backend": self.backend.serialize(),
     }
+
+  def getHash(self):
+    return getHash(self.serialize["backend"])

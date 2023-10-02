@@ -4,4 +4,3 @@ from .BoardFactory import createBoard
 from .GameFactory import createGame
 from .StatsFactory import createRawStats, createStats
 from .TupleFactory import createTuple
-

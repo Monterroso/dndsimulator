@@ -15,3 +15,20 @@ def decompactTupe(tup, backend):
     newTup.append(backend.getObj([], index))
     
   return tuple(newTup)
+
+def getHash(obj):
+  result = ""
+  if type(obj) == dict:
+    keys = obj.keys()
+    keys.sort()
+
+    for key in keys:
+      result += getHash(obj[key])
+  elif type(obj) == tuple or type(obj) == list:
+    for val in obj:
+      result += getHash(val)
+  else:
+    result += obj
+    
+  return result
+
