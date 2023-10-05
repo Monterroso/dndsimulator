@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name="dndSimulator",
-    version="0.0.3",
+    version="0.0.4",
     author="Marcus Monterroso",
     description="A pet project for simulated d&d battles",
     long_description=long_description,
