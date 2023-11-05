@@ -1,6 +1,11 @@
 class ActionHandler:
   def __init__(self, data=None):
+    
+    #Dict of actorId to specified action
     self.actionDict = {**data[0]} if data != None else {}
+    
+    # If we have attempted to access the actor's action
+    # If id in set, then can be skipped
     self.hasHit = set(data[1]) if data != None else set()
     
   def popAction(self, actorId):

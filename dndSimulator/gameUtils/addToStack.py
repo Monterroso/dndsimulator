@@ -1,9 +1,21 @@
 from .getCost import getCost
 
 def addToStack(actionIndex, actorIndex, backend):
+  """Adds action to the stack. 
+
+
+  Args:
+      actionIndex (_type_): _description_
+      actorIndex (_type_): _description_
+      backend (_type_): _description_
+  """
+  
+  #Actions/resources that a player has to spend on actions in the game
   availableActionsIndex = backend.getIndex(["availableActions"], actorIndex)
   
+  #Gets the cost of the action
   costIndex = getCost(actionIndex, actorIndex, backend)
+
 
   costObj = backend.getFromWorkingIndex(costIndex)
   availableActions = backend.getFromWorkingIndex(availableActionsIndex)

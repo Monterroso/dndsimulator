@@ -26,6 +26,7 @@ def gameRotation(actionHandler, backend):
     actorAi = backend.getObj(["ai"], actorIndex)
     actorId = backend.getObj(["id"], actorIndex)
     
+    #Perform actions if it's a new turn that's started
     if not backend.getObj(["turnStarted"]):
       startTurn(actorIndex, backend)
     
@@ -34,16 +35,22 @@ def gameRotation(actionHandler, backend):
       #Gets the action of the actor, or if player, get from external
       setAction(actorAi, actorIndex, actionHandler, backend)
 
+      #If we're able to pause execution and wait for a response, or if an action is waiting or not
       if actionHandler.canSkip(actorId):
         return actorId
 
+      # creates an action from the stored action information from our handler
       actionIndex = createAction(*actionHandler.popAction(actorId), backend)
       backend.setIndex(["proposedAction"], actionIndex)
 
+      # checks if the action created is valid
       validAction = isValid(actionIndex, actorIndex, backend)
       
       if validAction: 
+        #adds action to stack
         addToStack(actionIndex, actorIndex, backend)
+        
+        #pops the action and performs it
         perform(backend)
 
       #Action is no longer proposed

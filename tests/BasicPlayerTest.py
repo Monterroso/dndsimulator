@@ -52,6 +52,6 @@ def basicTest():
 
   a = json.dumps(game.serialize())
   
-  f = open("output.json", "w+")
+  f = open("output1.json", "w+")
   f.write(a)
   f.close()

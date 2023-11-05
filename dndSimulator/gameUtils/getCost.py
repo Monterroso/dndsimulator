@@ -1,6 +1,16 @@
 from .utils import getDistance, decompactTupe
 
 def getCost(actionIndex, actorIndex, backend):
+  """Gets the cost of the action, stores 
+
+  Args:
+      actionIndex (_type_): _description_
+      actorIndex (_type_): _description_
+      backend (_type_): _description_
+
+  Returns:
+      _type_: _description_
+  """
   actionType = backend.getObj(["actionType"], actionIndex)
   
   cost = {}
